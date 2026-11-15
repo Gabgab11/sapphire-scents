@@ -91,8 +91,9 @@
           <div class="lu-look" aria-live="polite"><span>Scent</span><span class="lu-win"><span class="lu-roll" id="luRoll"></span></span></div>
           <div class="lu-name"><span class="lu-roll" id="luNames"></span></div>
           <button class="lu-shop wide" id="luShop">Shop this scent</button>
+          <div class="lu-nav"><button type="button" id="luPrev" aria-label="Previous scent">←</button><button type="button" id="luNext" aria-label="Next scent">→</button></div>
         </div>
-        <div class="lu-hint">Scroll or drag</div>
+        <div class="lu-hint">Scroll, swipe or drag</div>
         <div class="lu-ring" id="luRing"></div>
       </div>
       <aside class="lu-rail" id="luRail" aria-label="Bottle and notes for each scent"></aside>
@@ -197,7 +198,7 @@
 })();
 /* ================= THE LINEUP: runway depth line driven by page scroll ================= */
 (function(){
- const IDS=['asiko','jagaban','oud-magnifique','grandeur'],LN=IDS.length,STEP=360;
+ const IDS=['asiko','jagaban','oud-magnifique','grandeur'],LN=IDS.length,STEP=360,SHOW=3,RUN=SHOW-1; /* scroll walks through 3 scents: 01 to 03 */
  const RAT={amber:341/750,jag:269/700};
  // depth stops from d = -1 (leaving past the rail) to d = 3 (arriving out of the haze); three bottles in view at rest
  const KX=[1.2,.70,.45,.27,.13],KF=[1.14,.89,.775,.70,.65],KH=[1.18,.80,.55,.40,.30],
@@ -212,23 +213,29 @@
   const a=document.createElement('article');a.className='lu-card';
   a.innerHTML=`<button class="lu-fav" aria-pressed="false" aria-label="Save ${p.name}">${heart}</button><span class="lu-shot"><img src="${IMG[p.img]}" alt="${p.name} bottle"></span><div class="lu-meta"><h3>${p.name}</h3><span>${naira(p.price)}</span><button class="lu-add" data-add="${p.id}" aria-label="Add ${p.name} to bag"></button></div>`;
   const b=document.createElement('article');b.className='lu-card alt';
-  b.innerHTML=`<div class="lu-notes">${p.notes.map(n=>`<div><i>${art(n)}</i>${n}</div>`).join('')}</div><div class="lu-meta"><h3>${p.name} notes</h3><span>${p.family}</span><a class="lu-add" href="${productUrl(p)}" aria-label="View ${p.name}"></a></div>`;
+  b.innerHTML=`<div class="lu-notes">${p.notes.slice(0,4).map(n=>`<div><i>${art(n)}</i>${n}</div>`).join('')}</div><div class="lu-meta"><h3>${p.name} notes</h3><span>${p.family}</span><a class="lu-add" href="${productUrl(p)}" aria-label="View ${p.name}"></a></div>`;
   rail.append(a,b);cards.push(a,b)});
  for(let i=0;i<=LN;i++){const n=document.createElement('b');n.textContent=String(i%LN+1).padStart(2,'0');roll.append(n);
   const m=document.createElement('b');m.textContent=byId[IDS[i%LN]].name;names.append(m)}
  rail.addEventListener('click',e=>{const f=e.target.closest('.lu-fav');if(f)f.setAttribute('aria-pressed',f.getAttribute('aria-pressed')!=='true')});
 
  let W=0,H=0,base=0,cs=0,side=false,dirty=true,p=0,off=0,target=0,last=0,hh=64,pinH=600,sT=0,snapT=0;
+ let nopin=false,badPin=0,down=false;
  function size(){
   hh=document.querySelector('header.site').offsetHeight;document.documentElement.style.setProperty('--hh',hh+'px');
-  pinH=Math.max(520,innerHeight-hh);sec.style.height=(pinH+LN*STEP)+'px';
+  pinH=Math.max(520,innerHeight-hh);if(!nopin)sec.style.height=(pinH+RUN*STEP)+'px';
   W=st.clientWidth;H=st.clientHeight;base=H*1.2;side=innerWidth<=820;
   people.forEach(m=>{m.e.style.width=base*m.r+'px';m.e.style.height=base+'px'});
   cs=side?160:rail.clientHeight/3;cards.forEach(c=>c.style.height=side?'100%':cs+'px');dirty=true;readScroll()}
- function readScroll(){const r=sec.getBoundingClientRect();sT=clamp((hh-r.top)/(LN*STEP),0,1)*LN}
- const snap=()=>{off+=Math.round(sT+off)-(sT+off)};
+ function readScroll(){if(nopin){sT=0;return}const r=sec.getBoundingClientRect();sT=clamp((hh-r.top)/(RUN*STEP),0,1)*RUN;
+  /* if the browser didn't keep the stage pinned (seen on some iPhones), fall back to an in-place stage */
+  if(r.top<hh-40&&r.bottom>innerHeight+40){const pt=$('#luPin').getBoundingClientRect().top;if(Math.abs(pt-hh)>30){if(++badPin>3)goNoPin()}else badPin=0}}
+ function goNoPin(){if(nopin)return;nopin=true;const y=scrollY,before=sec.offsetHeight;sec.classList.add('nopin');sec.style.height='';const after=sec.offsetHeight;off=Math.round(sT);sT=0;size();if(sec.getBoundingClientRect().top<0)scrollTo(0,y-(before-after));
+  setInterval(()=>{if(!down&&on&&!document.hidden){const tg=off;off=Math.round(tg)+1}},4200)}
+ let idle=true;
+ const snap=()=>{idle=true};
  addEventListener('resize',size);
- addEventListener('scroll',()=>{readScroll();clearTimeout(snapT);snapT=setTimeout(snap,150)},{passive:true});
+ addEventListener('scroll',()=>{readScroll();idle=false;clearTimeout(snapT);snapT=setTimeout(snap,150)},{passive:true});
  function paint(){
   people.forEach((m,i)=>{let d=wrap(i-p,LN);if(d>LN-1)d-=LN;
    const k=clamp(d+1,0,NS),a=Math.floor(k),b=Math.min(NS,a+1),t=k-a,mix=A=>A[a]+(A[b]-A[a])*t;
@@ -242,9 +249,9 @@
   roll.style.transform=`translate3d(0,${(-wrap(p,LN)*roll.firstChild.offsetHeight).toFixed(1)}px,0)`;
   names.style.transform=`translate3d(0,${(-wrap(p,LN)*names.firstChild.offsetHeight).toFixed(1)}px,0)`;
  }
- let mx=0,my=0,cx=0,cy=0,down=false,sx=0,o0=0,moved=0,on=false;
+ let mx=0,my=0,cx=0,cy=0,sx=0,o0=0,moved=0,on=false;
  function frame(now){if(!on)return;const dt=Math.min(50,now-last)||16;last=now;
-  target=sT+off;const was=p;
+  target=(idle&&!down)?Math.round(sT+off):sT+off;const was=p;
   if(RM)p=target;else p+=(target-p)*(1-Math.exp(-dt*.0072));if(Math.abs(target-p)<.0004)p=target;
   if(p!==was||dirty){dirty=false;paint()}
   cx+=(mx-cx)*.32;cy+=(my-cy)*.32;ring.style.transform=`translate3d(${cx.toFixed(1)}px,${cy.toFixed(1)}px,0)`;
@@ -256,7 +263,7 @@
  st.addEventListener('pointermove',e=>{const r=st.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top;
   if(e.pointerType==='mouse')ring.classList.toggle('show',!e.target.closest('button'));
   if(!down)return;const dx=e.clientX-sx;moved=Math.max(moved,Math.abs(dx));off=o0+dx/PULL()});
- st.addEventListener('pointerdown',e=>{if(e.target.closest('a,button'))return;down=true;sx=e.clientX;o0=off;moved=0;st.setPointerCapture(e.pointerId);ring.classList.add('drag')});
+ st.addEventListener('pointerdown',e=>{if(e.target.closest('a,button'))return;down=true;idle=false;sx=e.clientX;o0=off;moved=0;st.setPointerCapture(e.pointerId);ring.classList.add('drag')});
  function release(e){if(!down)return;down=false;ring.classList.remove('drag');
   if(moved<6){const hit=document.elementsFromPoint(e.clientX,e.clientY).find(x=>x.classList&&x.classList.contains('lu-b'));
    if(hit){const tg=sT+off;let d=Math.round(wrap(+hit.dataset.i-tg,LN));if(d===0)location.href=productUrl(byId[IDS[+hit.dataset.i]]);else if(d<LN)off+=Math.round(tg)+d-tg}}
@@ -264,6 +271,7 @@
  st.addEventListener('pointerup',release);st.addEventListener('pointercancel',release);
  const step=n=>{const tg=sT+off;off+=Math.round(tg)+n-tg};
  st.addEventListener('keydown',e=>{if(['ArrowRight','ArrowDown'].includes(e.key)){e.preventDefault();step(1)}if(['ArrowLeft','ArrowUp'].includes(e.key)){e.preventDefault();step(-1)}});
+ $('#luPrev').addEventListener('click',()=>step(-1));$('#luNext').addEventListener('click',()=>step(1));
  $('#luShop').addEventListener('click',()=>{location.href=productUrl(byId[IDS[wrap(Math.round(sT+off),LN)]])});
  size();paint();
  Promise.all(people.map(m=>m.e.querySelector('img').decode().catch(()=>{}))).then(()=>(document.fonts?document.fonts.ready:0)).then(()=>{size();paint()});

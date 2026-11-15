@@ -21,7 +21,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.6;font-weight:400;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.6;font-weight:400;overflow-x:clip;-webkit-font-smoothing:antialiased}
 body.locked{overflow:hidden}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:#03061a}
 a{color:inherit;text-decoration:none}
@@ -614,3 +614,10 @@ a.nchip:hover{border-color:var(--gold)}
 .tile img{height:auto}
 .tile.dtile img,.tile.rtile.photo img{height:100%!important}
 .gal-main img.bottle-img{height:auto}
+
+/* lineup fallback when a browser won't keep the stage pinned: show it in place, swipe or tap the arrows */
+.lineup.nopin{height:auto!important}
+.lineup.nopin .lu-pin{position:relative;top:auto;height:min(82svh,720px)}
+.lu-nav{display:none;gap:8px;margin-top:12px;pointer-events:auto}
+.lineup.nopin .lu-nav{display:flex}
+.lu-nav button{width:42px;height:42px;border:1px solid var(--line);background:rgba(7,12,41,.6);color:var(--ink);font-size:16px}
