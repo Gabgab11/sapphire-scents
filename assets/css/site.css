@@ -603,3 +603,14 @@ a.nchip:hover{border-color:var(--gold)}
 @keyframes lgFill{to{fill-opacity:1;stroke-opacity:0}}
 @keyframes lgPop{to{opacity:1;transform:none}}
 @keyframes lgRise{to{opacity:1;transform:none}}
+
+/* refill photos: one shared brown ground so photographed and drawn refills read as one set */
+.rtile,.gal-main.rgal{background:radial-gradient(ellipse at 50% 45%,#4a2a20,#351C15 70%)!important}
+.rtile.photo{display:block}
+.rtile.photo img{width:100%!important;height:100%;object-fit:cover;filter:none!important;transition:transform .7s cubic-bezier(.2,.8,.2,1)}
+.card:hover .rtile.photo img{transform:scale(1.04)!important}
+.gal-main.rgal{aspect-ratio:1}
+.gal-main.rgal img.photo{width:100%;height:100%;object-fit:cover}
+.tile img{height:auto}
+.tile.dtile img,.tile.rtile.photo img{height:100%!important}
+.gal-main img.bottle-img{height:auto}

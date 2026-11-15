@@ -36,7 +36,7 @@ else{
  let gal,info='';
  const stepper=`<div class="stepper"><button type="button" id="qm" aria-label="Decrease quantity">−</button><output id="qv">1</output><button type="button" id="qp" aria-label="Increase quantity">+</button></div>`;
  if(p.type==='perfume'){
-  gal=`<div class="gal-main" style="--a:${p.a}"><img class="bottle-img" src="${IMG[p.img]}" alt="${p.name} bottle"><span class="mono">${p.name}</span></div>`;
+  gal=`<div class="gal-main" style="--a:${p.a}"><img class="bottle-img" src="${IMG[p.img]}" alt="${p.name} bottle" fetchpriority="high"><span class="mono">${p.name}</span></div>`;
   const notesHTML=p.pyramid?`<div class="pyr">${['top','heart','base'].map(k=>`<div><small>${k}</small><div class="nchips">${p.pyramid[k].map(n=>`<a class="nchip" href="perfumes.html?note=${encodeURIComponent(n)}"><i>${art(n)}</i>${n}</a>`).join('')}</div></div>`).join('')}</div>`
    :`<div class="nchips">${p.notes.map(n=>`<a class="nchip" href="perfumes.html?note=${encodeURIComponent(n)}"><i>${art(n)}</i>${n}</a>`).join('')}</div>`;
   const refill=REFILLS.find(r=>r.perfume===p.id);
@@ -47,14 +47,14 @@ else{
    ${refill?`<div class="psec"><h2>For your space</h2><div class="note-box"><b>${p.name}</b> is also available as a diffuser scent refill (${naira(refill.price)}). <a class="tlink" href="${productUrl(refill)}">View the refill →</a></div></div>`:''}`;
  }else if(p.type==='refill'){
   const pf=p.perfume&&byId[p.perfume];
-  gal=`<div class="gal-main" style="--a:${p.a}"><span class="rart">${art(p.note)}</span><span class="mono">${p.name}</span></div>`;
+  gal=p.photo?`<div class="gal-main rgal"><img class="photo" src="${p.photo}" alt="${p.name} scent refill bottle" width="960" height="960" fetchpriority="high"></div>`:`<div class="gal-main rgal" style="--a:${p.a}"><span class="rart">${art(p.note)}</span><span class="mono">${p.name}</span></div>`;
   info=`<div class="kind">Scent refill · Diffuser oil</div><h1>${p.name}</h1><div class="tag">${pf?'Signature scent':'Single note'}</div>
    <div class="pprice">${naira(p.price)}</div><p class="lead">${p.story}</p>
    <div class="buy">${stepper}<button class="btn solid" id="addBtn">Add to bag</button></div>
    ${pf?`<div class="psec"><h2>The perfume</h2><div class="note-box">Love it on your skin too? <a class="tlink" href="${productUrl(pf)}">Shop ${pf.name} perfume, ${naira(pf.price)} →</a></div></div>`:''}
    <div class="psec"><h2>Use it with</h2><div class="nchips">${DIFFUSERS.map(d=>`<a class="nchip" href="${productUrl(d)}">${d.short} · ${naira(d.price)}</a>`).join('')}</div></div>`;
  }else{
-  gal=`<div class="gal-main"><img class="photo" id="gmain" src="${p.images[0]}" alt="${p.name}"></div><div class="thumbs" role="group" aria-label="${p.name} photos">${p.images.map((src,i)=>`<button type="button" data-src="${src}" aria-current="${i===0}" aria-label="Photo ${i+1}"><img src="${src}" alt=""></button>`).join('')}</div>`;
+  gal=`<div class="gal-main"><img class="photo" id="gmain" src="${p.images[0]}" alt="${p.name}" fetchpriority="high"></div><div class="thumbs" role="group" aria-label="${p.name} photos">${p.images.map((src,i)=>`<button type="button" data-src="${src}" aria-current="${i===0}" aria-label="Photo ${i+1}"><img src="${src}" alt="" loading="lazy" decoding="async"></button>`).join('')}</div>`;
   const opts=p.id==='i-5'?`<div class="opts" role="radiogroup" aria-label="Finish"><label><input type="radio" name="fin" value="White" checked><span><i style="background:#f2f2ef"></i>White</span></label><label><input type="radio" name="fin" value="Black"><span><i style="background:#2b2b2e"></i>Black</span></label></div>`:'';
   info=`<div class="kind">Diffuser</div><h1>${p.name}</h1><div class="tag">${p.tagline}</div>
    <div class="pprice">${naira(p.price)}</div><p class="lead">${p.summary}</p><p class="more">${p.body}</p>${opts}

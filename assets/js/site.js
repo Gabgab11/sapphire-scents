@@ -61,7 +61,7 @@ function addToBag(id,qty=1,opt=''){
 function thumb(p){
   if(p.type==='perfume')return `<img src="${IMG[p.img]}" alt="">`;
   if(p.type==='diffuser')return `<img class="cover" src="${p.images[0]}" alt="">`;
-  return `<i class="ico">${art(p.note)}</i>`;
+  return p.thumb?`<img class="cover" src="${p.thumb}" alt="" width="96" height="96" decoding="async">`:`<i class="ico">${art(p.note)}</i>`;
 }
 function renderBag(){
   const n=BAG.reduce((s,l)=>s+l.qty,0);
@@ -79,20 +79,20 @@ let tT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('sh
 function perfumeCard(p){
   const badges=[p.tags.includes('new')?'<span class="badge new">New</span>':'',p.tags.includes('best')?'<span class="badge">Best seller</span>':''].join('');
   return `<article class="card" style="--a:${p.a}">
-    <a class="tile" href="${productUrl(p)}" aria-label="${esc(p.name)}"><img src="${IMG[p.img]}" alt="${esc(p.name)} bottle" loading="lazy"><span class="mono">${esc(p.name)}</span><div class="badges">${badges}</div><span class="qv">View scent</span></a>
+    <a class="tile" href="${productUrl(p)}" aria-label="${esc(p.name)}"><img src="${IMG[p.img]}" alt="${esc(p.name)} bottle" loading="lazy" decoding="async" width="${p.img==='jag'?269:341}" height="${p.img==='jag'?700:750}"><span class="mono">${esc(p.name)}</span><div class="badges">${badges}</div><span class="qv">View scent</span></a>
     <div class="cbody"><h3><a href="${productUrl(p)}">${esc(p.name)}</a></h3><p class="fmt">${esc(p.family)}</p>
     <p class="notes">${p.notes.map(esc).join(' · ')}</p>
     <div class="crow"><span class="price">${naira(p.price)}</span><button class="add" data-add="${p.id}">Add to bag</button></div></div></article>`;
 }
 function refillCard(r){
   return `<article class="card rcard" style="--a:${r.a}">
-    <a class="tile rtile" href="${productUrl(r)}" aria-label="${esc(r.name)} scent refill"><span class="rart">${art(r.note)}</span><span class="rname">${esc(r.name)}</span><span class="rkind">Scent refill</span><span class="qv">View refill</span></a>
+    <a class="tile rtile${r.thumb?' photo':''}" href="${productUrl(r)}" aria-label="${esc(r.name)} scent refill">${r.thumb?`<img src="${r.thumb}" srcset="${r.thumb} 480w, ${r.photo} 960w" sizes="(max-width:760px) 50vw, (max-width:1060px) 33vw, 300px" width="480" height="480" alt="${esc(r.name)} scent refill bottle" loading="lazy" decoding="async">`:`<span class="rart">${art(r.note)}</span><span class="rname">${esc(r.name)}</span><span class="rkind">Scent refill</span>`}<span class="qv">View refill</span></a>
     <div class="cbody"><h3><a href="${productUrl(r)}">${esc(r.name)}</a></h3><p class="fmt">${r.perfume?'Signature scent':'Single note'} · diffuser oil</p>
     <div class="crow"><span class="price">${naira(r.price)}</span><button class="add" data-add="${r.id}">Add to bag</button></div></div></article>`;
 }
 function diffuserCard(d){
   return `<article class="card dcard">
-    <a class="tile dtile" href="${productUrl(d)}" aria-label="${esc(d.name)}"><img src="${d.images[0]}" alt="${esc(d.name)}" loading="lazy"><span class="qv">View diffuser</span></a>
+    <a class="tile dtile" href="${productUrl(d)}" aria-label="${esc(d.name)}"><img src="${d.images[0]}" alt="${esc(d.name)}" loading="lazy" decoding="async"><span class="qv">View diffuser</span></a>
     <div class="cbody"><h3><a href="${productUrl(d)}">${esc(d.name)}</a></h3><p class="fmt">${esc(d.tagline)}</p>
     <div class="crow"><span class="price">${naira(d.price)}</span><a class="add" href="${productUrl(d)}">Details</a></div></div></article>`;
 }

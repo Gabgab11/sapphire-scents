@@ -136,6 +136,7 @@ const PERFUMES=[
 PERFUMES.forEach(p=>{p.type='perfume';p.img=p.img||'amber';p.kind='Perfume'});
 
 const REFILL_NOTES={arewa:'Mango',asiko:'Amber',banana:'Banana','black-tea':'Black Tea',bespoke:'Drop',cherub:'Honey','chocolate-r':'Cocoa',coffee:'Coffee',frankincense:'Frankincense',fruity:'Fruity','jagaban-r':'Incense',jasmine:'Jasmine',lemon:'Lemon',mango:'Mango',myrrh:'Myrrh',oud:'Oud',patchouli:'Patchouli','saki-r':'Frankincense','sapphire-no-5-r':'Jasmine','seraph-r':'Amber','siren-r':'Peach',strawberry:'Strawberry',vanilla:'Vanilla','white-oud':'Oud','white-tea':'White Tea'};
+const REFILL_PHOTOS=['myrrh','white-oud','cherub','frankincense','siren','fruity','strawberry','banana','sapphire-no-5','black-tea','seraph','lemon','patchouli','asiko','coffee','saki','mango','jasmine','bespoke'];
 const REFILLS=[
  ['arewa','Arewa',150000,'arewa'],['asiko','Asiko',150000,'asiko'],['banana','Banana',150000],['bespoke','Bespoke',200000],['black-tea','Black Tea',150000],
  ['cherub','Cherub',150000,'cherub'],['chocolate-r','Chocolate',150000,'chocolate'],['coffee','Coffee',150000],['frankincense','Frankincense',200000],['fruity','Fruity',150000],
@@ -150,7 +151,9 @@ const REFILLS=[
   if(pf) story=`The ${pf.name} scent as a diffuser oil, so your home, office or store carries the same signature as the perfume: ${pf.notes.join(', ').toLowerCase()}.`;
   else if(rid==='bespoke') story='A scent blended for your space. Tell the Sapphire team the mood you want for your home, hotel or business and they will advise on the blend.';
   else story=`${name} scent oil for diffusers. A single, clear note to fill a room, an office or a store, from the house known for blending Moroccan roses, Ethiopian frankincense and European lavender.`;
-  return {id,name,price,type:'refill',kind:'Scent refill',note,perfume:pf?pf.id:null,story,a:pf?pf.a:'#8a6a2a',family:pf?'Signature scent':'Single note'};
+  const base=rid.replace(/-r$/,'');
+  const photo=REFILL_PHOTOS.includes(base)?`images/refills/${base}.webp`:null;
+  return {id,name,price,type:'refill',kind:'Scent refill',note,perfume:pf?pf.id:null,story,a:pf?pf.a:'#8a6a2a',family:pf?'Signature scent':'Single note',photo,thumb:photo?photo.replace('.webp','-sm.webp'):null};
 });
 
 const DIFFUSERS=[
