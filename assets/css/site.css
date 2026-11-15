@@ -585,17 +585,21 @@ a.nchip:hover{border-color:var(--gold)}
 #logoIntro .skip-intro{position:absolute;right:calc(var(--gut-r) + 6px);bottom:calc(env(safe-area-inset-bottom,0px) + 22px);background:none;border:0;color:var(--dim);font-size:10px;letter-spacing:.24em;text-transform:uppercase}
 #logoIntro .skip-intro:hover{color:var(--ink)}
 .lg path{fill:var(--ink);transform-box:fill-box;transform-origin:center}
-.lg [pathLength]{fill-opacity:0;stroke:var(--ink);stroke-width:.7;stroke-dasharray:1;stroke-dashoffset:1}
-.lg .lg-ring{animation:lgDraw 1.3s cubic-bezier(.6,0,.3,1) .2s forwards,lgFill .7s ease 1.2s forwards}
-.lg .lg-big{animation:lgDraw 1s ease calc(.7s + var(--i)*.05s) forwards,lgFill .6s ease 1.7s forwards}
-.lg .lg-dot{opacity:0;transform:scale(.2);animation:lgPop .45s cubic-bezier(.2,1.6,.4,1) calc(.35s + var(--i)/var(--n)*1.1s) forwards}
-.lg .lg-wave{opacity:0;transform:translateY(5px);animation:lgRise .7s ease calc(.9s + var(--i)*.018s) forwards}
-.lg .lg-w{animation:lgDraw .55s ease calc(1.9s + var(--i)*.1s) forwards,lgFill .5s ease calc(2.25s + var(--i)*.1s) forwards}
-.lg .lg-v{opacity:0;animation:lgRise .6s ease calc(3.3s + var(--i)*.04s) forwards}
+.lg-ring,.lg-big,.lg-w{fill-opacity:0;stroke:var(--ink);stroke-width:.7;stroke-linejoin:round}
+.lg-dot,.lg-wave,.lg-v{opacity:0}
+.lg-go .lg-ring{animation:lgDraw 1.3s cubic-bezier(.6,0,.3,1) .2s forwards,lgFill .7s ease 1.2s forwards}
+.lg-go .lg-big{animation:lgDraw 1s ease calc(.7s + var(--i)*.05s) forwards,lgFill .6s ease 1.7s forwards}
+.lg-go .lg-dot{transform:scale(.2);animation:lgPop .45s cubic-bezier(.2,1.6,.4,1) calc(.35s + var(--i)/var(--n)*1.1s) forwards}
+.lg-go .lg-wave{transform:translateY(5px);animation:lgRise .7s ease calc(.9s + var(--i)*.018s) forwards}
+.lg-go .lg-w{animation:lgDraw .55s ease calc(1.9s + var(--i)*.1s) forwards,lgFill .5s ease calc(2.25s + var(--i)*.1s) forwards}
+.lg-go .lg-v{animation:lgRise .6s ease calc(3.3s + var(--i)*.04s) forwards}
+/* reduce-motion: the logo simply fades in, no drawing or movement */
+.lg-calm .lg path{stroke-dashoffset:0!important;fill-opacity:1!important;stroke-opacity:0!important;opacity:1!important;transform:none!important;animation:none!important}
+.lg-calm .lg{opacity:0;animation:lgFade 1s ease .1s forwards}
+@keyframes lgFade{to{opacity:1}}
 #logoIntro.lg-on .lg{filter:drop-shadow(0 0 18px rgba(255,158,13,.55)) drop-shadow(0 0 2px rgba(255,190,90,.8))}
 #logoIntro.lg-on .lg path{fill:#ffd9a0;transition:fill .6s ease}
 @keyframes lgDraw{to{stroke-dashoffset:0}}
 @keyframes lgFill{to{fill-opacity:1;stroke-opacity:0}}
 @keyframes lgPop{to{opacity:1;transform:none}}
 @keyframes lgRise{to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){#logoIntro{display:none}}
