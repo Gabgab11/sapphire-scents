@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sapphire Scents</title>
+<meta name="description" content="Sapphire Scents product details.">
+<meta name="theme-color" content="#070C29">
+<meta property="og:site_name" content="Sapphire Scents">
+<meta property="og:title" content="Sapphire Scents">
+<meta property="og:description" content="Sapphire Scents product details.">
+<meta property="og:image" content="/images/crown-jagaban.webp">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070C29'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='Georgia,serif' font-style='italic' font-size='36' fill='%23FF9E0D'%3ES%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/css/site.css">
+<script>document.documentElement.classList.add("js")</script>
+</head>
+<body>
+<header id="site-header" class="site"></header>
+<main id="top">
+<div class="wrap" id="pwrap"><nav class="crumbs" aria-label="Breadcrumb" id="pcrumbs" style="padding-top:28px"></nav><div class="pdp" id="pdp"></div></div>
+<section class="related"><div class="wrap"><h2 id="relTitle">You may also like</h2><div class="grid" id="relGrid"></div></div></section>
+</main>
+<footer id="site-footer"></footer>
+<script src="assets/js/catalog.js"></script>
+<script src="assets/js/site.js"></script>
+<script>
+
+const id=new URLSearchParams(location.search).get('id');const p=byId[id];
+if(!p){$('#pdp').innerHTML=`<div style="padding:80px 0"><h1 class="pagehead" style="font-family:var(--display);font-size:48px">We couldn’t find that product</h1><p><a class="tlink" href="perfumes.html">Browse all perfumes</a></p></div>`;$('.related').hidden=true;}
+else{
+ document.title=`${p.name} | Sapphire Scents`;
+ const md=document.querySelector('meta[name=description]');md.content=(p.summary||p.story).slice(0,155);
+ const sec={perfume:['perfumes.html','Perfumes'],refill:['refills.html','Scent refills'],diffuser:['diffusers.html','Diffusers']}[p.type];
+ $('#pcrumbs').innerHTML=`<a href="index.html">Home</a><span>/</span><a href="${sec[0]}">${sec[1]}</a><span>/</span><span>${p.name}</span>`;
+ let gal,info='';
+ const stepper=`<div class="stepper"><button type="button" id="qm" aria-label="Decrease quantity">−</button><output id="qv">1</output><button type="button" id="qp" aria-label="Increase quantity">+</button></div>`;
+ if(p.type==='perfume'){
+  gal=`<div class="gal-main" style="--a:${p.a}"><img class="bottle-img" src="${IMG[p.img]}" alt="${p.name} bottle"><span class="mono">${p.name}</span></div>`;
+  const notesHTML=p.pyramid?`<div class="pyr">${['top','heart','base'].map(k=>`<div><small>${k}</small><div class="nchips">${p.pyramid[k].map(n=>`<a class="nchip" href="perfumes.html?note=${encodeURIComponent(n)}"><i>${art(n)}</i>${n}</a>`).join('')}</div></div>`).join('')}</div>`
+   :`<div class="nchips">${p.notes.map(n=>`<a class="nchip" href="perfumes.html?note=${encodeURIComponent(n)}"><i>${art(n)}</i>${n}</a>`).join('')}</div>`;
+  const refill=REFILLS.find(r=>r.perfume===p.id);
+  info=`<div class="kind">${p.tags.includes('new')?'New release · ':''}${p.tags.includes('best')?'Best seller · ':''}Perfume</div><h1>${p.name}</h1><div class="tag">${p.family} · Unisex · Made in Nigeria</div>
+   <div class="pprice">${naira(p.price)}</div><p class="lead">${p.story}</p>
+   <div class="buy">${stepper}<button class="btn solid" id="addBtn">Add to bag</button></div>
+   <div class="psec"><h2>Notes</h2>${notesHTML}</div>
+   ${refill?`<div class="psec"><h2>For your space</h2><div class="note-box"><b>${p.name}</b> is also available as a diffuser scent refill (${naira(refill.price)}). <a class="tlink" href="${productUrl(refill)}">View the refill →</a></div></div>`:''}`;
+ }else if(p.type==='refill'){
+  const pf=p.perfume&&byId[p.perfume];
+  gal=`<div class="gal-main" style="--a:${p.a}"><span class="rart">${art(p.note)}</span><span class="mono">${p.name}</span></div>`;
+  info=`<div class="kind">Scent refill · Diffuser oil</div><h1>${p.name}</h1><div class="tag">${pf?'Signature scent':'Single note'}</div>
+   <div class="pprice">${naira(p.price)}</div><p class="lead">${p.story}</p>
+   <div class="buy">${stepper}<button class="btn solid" id="addBtn">Add to bag</button></div>
+   ${pf?`<div class="psec"><h2>The perfume</h2><div class="note-box">Love it on your skin too? <a class="tlink" href="${productUrl(pf)}">Shop ${pf.name} perfume, ${naira(pf.price)} →</a></div></div>`:''}
+   <div class="psec"><h2>Use it with</h2><div class="nchips">${DIFFUSERS.map(d=>`<a class="nchip" href="${productUrl(d)}">${d.short} · ${naira(d.price)}</a>`).join('')}</div></div>`;
+ }else{
+  gal=`<div class="gal-main"><img class="photo" id="gmain" src="${p.images[0]}" alt="${p.name}"></div><div class="thumbs" role="group" aria-label="${p.name} photos">${p.images.map((src,i)=>`<button type="button" data-src="${src}" aria-current="${i===0}" aria-label="Photo ${i+1}"><img src="${src}" alt=""></button>`).join('')}</div>`;
+  const opts=p.id==='i-5'?`<div class="opts" role="radiogroup" aria-label="Finish"><label><input type="radio" name="fin" value="White" checked><span><i style="background:#f2f2ef"></i>White</span></label><label><input type="radio" name="fin" value="Black"><span><i style="background:#2b2b2e"></i>Black</span></label></div>`:'';
+  info=`<div class="kind">Diffuser</div><h1>${p.name}</h1><div class="tag">${p.tagline}</div>
+   <div class="pprice">${naira(p.price)}</div><p class="lead">${p.summary}</p><p class="more">${p.body}</p>${opts}
+   <div class="buy">${stepper}<button class="btn solid" id="addBtn">Add to bag</button></div>
+   <div class="psec"><h2>Features</h2><ul class="feats">${p.features.map(f=>`<li>${f}</li>`).join('')}</ul></div>
+   <div class="psec"><h2>Specifications</h2><table class="specs"><tbody>${p.specs.map(([k,v])=>`<tr><th scope="row">${k}</th><td>${v}</td></tr>`).join('')}<tr><th scope="row">Best for</th><td>${p.bestFor}</td></tr></tbody></table></div>
+   <div class="psec"><h2>Fill it with Sapphire</h2><div class="note-box">Runs on Sapphire scent refills, from Jagaban and Seraph to single notes like oud and white tea. <a class="tlink" href="refills.html">Shop scent refills →</a></div></div>`;
+ }
+ $('#pdp').innerHTML=`<div class="gal">${gal}</div><div class="pinfo">${info}</div>`;
+ let q=1;const qv=()=>$('#qv').textContent=q;
+ $('#qm').onclick=()=>{q=Math.max(1,q-1);qv()};$('#qp').onclick=()=>{q=Math.min(20,q+1);qv()};
+ $('#addBtn').onclick=()=>{const f=document.querySelector('input[name=fin]:checked');addToBag(p.id,q,f?f.value+' finish':'')};
+ document.addEventListener('click',e=>{const t=e.target.closest('.thumbs button');if(!t)return;$('#gmain').src=t.dataset.src;$$('.thumbs button').forEach(b=>b.setAttribute('aria-current',String(b===t)))});
+ let rel;
+ if(p.type==='perfume'){const sameTag=PERFUMES.filter(x=>x.id!==p.id&&x.tags.some(t=>p.tags.includes(t)));const shared=PERFUMES.filter(x=>x.id!==p.id&&x.notes.some(n=>n!=='Oud'&&p.notes.includes(n)));rel=[...new Set([...shared,...sameTag,...PERFUMES.filter(x=>x.id!==p.id)])].slice(0,4);$('#relTitle').textContent='You may also like'}
+ else if(p.type==='refill'){rel=REFILLS.filter(x=>x.id!==p.id&&(!!x.perfume)===(!!p.perfume)).slice(0,4);$('#relTitle').textContent='More scent refills'}
+ else{rel=DIFFUSERS.filter(x=>x.id!==p.id);$('#relTitle').textContent='Other diffusers';$('#relGrid').classList.add('g3')}
+ $('#relGrid').innerHTML=rel.map(anyCard).join('');
+}
+
+</script>
+</body>
+</html>

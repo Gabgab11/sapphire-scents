@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Checkout | Sapphire Scents</title>
+<meta name="description" content="Place your Sapphire Scents order.">
+<meta name="theme-color" content="#070C29">
+<meta property="og:site_name" content="Sapphire Scents">
+<meta property="og:title" content="Checkout | Sapphire Scents">
+<meta property="og:description" content="Place your Sapphire Scents order.">
+<meta property="og:image" content="/images/crown-jagaban.webp">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070C29'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='Georgia,serif' font-style='italic' font-size='36' fill='%23FF9E0D'%3ES%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/css/site.css">
+<script>document.documentElement.classList.add("js")</script>
+</head>
+<body>
+<header id="site-header" class="site"></header>
+<main id="top">
+<section class="pagehead"><div class="wrap"><nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span>/</span><span>Checkout</span></nav><h1>Place your <em>order</em></h1></div></section>
+<section style="padding-top:10px"><div class="wrap co" id="co">
+  <div id="coForm">
+    <form class="form" id="oform" novalidate>
+      <div class="eyebrow">Your details</div>
+      <div class="row2"><div class="field"><label for="on">Full name</label><input id="on" name="name" required autocomplete="name" placeholder=" "></div>
+      <div class="field"><label for="op">Phone (WhatsApp if possible)</label><input id="op" name="phone" type="tel" required autocomplete="tel" placeholder=" "></div></div>
+      <div class="field"><label for="oe">Email</label><input id="oe" name="email" type="email" required autocomplete="email" placeholder=" "></div>
+      <div class="eyebrow" style="margin-top:12px">Delivery</div>
+      <div class="field"><label for="oa">Delivery address</label><input id="oa" name="address" required autocomplete="street-address" placeholder=" "></div>
+      <div class="row2"><div class="field"><label for="oc">City</label><input id="oc" name="city" required autocomplete="address-level2" placeholder=" "></div>
+      <div class="field"><label for="os">State / Country</label><input id="os" name="state" required autocomplete="address-level1" placeholder=" "></div></div>
+      <div class="field"><label for="ox">Order notes (optional)</label><textarea id="ox" name="notes" placeholder=" " style="min-height:90px"></textarea></div>
+      <p id="oerr" role="alert" hidden style="color:#ff8a7a;margin:0"></p>
+      <div><button class="btn solid" type="submit">Place order</button></div>
+    </form>
+  </div>
+  <aside class="summary" aria-label="Order summary">
+    <h2>Your order</h2><div id="sumLines"></div><div class="sumtotal"><span>Subtotal</span><span id="sumTotal">₦0</span></div>
+    <ol class="steps"><li>Place your order. It is sent to the Sapphire team by email.</li><li>The team confirms availability and your delivery cost.</li><li>You receive payment details, and your order is dispatched once paid.</li></ol>
+  </aside>
+</div></section>
+</main>
+<footer id="site-footer"></footer>
+<script src="assets/js/catalog.js"></script>
+<script src="assets/js/site.js"></script>
+<script>
+
+function sum(){
+ $('#sumLines').innerHTML=BAG.length?BAG.map(l=>{const p=byId[l.id];return `<div class="sumline"><div>${p.name} × ${l.qty}<small>${p.kind}${l.opt?' · '+l.opt:''}</small></div><span>${naira(p.price*l.qty)}</span></div>`}).join(''):'<p class="dnote" style="padding:14px 0">Your bag is empty. <a class="tlink" href="perfumes.html">Shop perfumes</a></p>';
+ $('#sumTotal').textContent=naira(bagTotal());
+}
+sum();addEventListener('storage',sum);document.addEventListener('click',()=>setTimeout(sum,0));
+$('#oform').addEventListener('submit',e=>{e.preventDefault();const f=e.target,err=$('#oerr');
+ if(!BAG.length){err.hidden=false;err.textContent='Your bag is empty. Add a perfume, refill or diffuser first.';return}
+ if(!f.checkValidity()){err.hidden=false;err.textContent='Please fill in your name, phone, email and delivery address.';f.querySelector(':invalid').focus();return}
+ err.hidden=true;
+ const ref='SS-'+Date.now().toString(36).toUpperCase().slice(-6);
+ const lines=BAG.map(l=>{const p=byId[l.id];return `• ${p.name} (${p.kind}${l.opt?', '+l.opt:''}) × ${l.qty}: ${naira(p.price*l.qty)}`}).join('\n');
+ const text=`New order ${ref}\n\n${lines}\n\nSubtotal: ${naira(bagTotal())}\n\nName: ${f.name.value}\nPhone: ${f.phone.value}\nEmail: ${f.email.value}\nAddress: ${f.address.value}, ${f.city.value}, ${f.state.value}${f.notes.value?'\nNotes: '+f.notes.value:''}`;
+ $('#coForm').innerHTML=`<div class="done"><div class="eyebrow">Order ${ref}</div><h2>Thank you, ${f.name.value.split(' ')[0]}</h2><p style="color:var(--mid)">Your email app should open with the order addressed to the Sapphire team. Press send, and the team will confirm availability, delivery cost and payment details. If it didn’t open, copy the order below and email it to <b>${CONTACT.email}</b>.</p><pre id="otext"></pre><p><button class="btn" id="copyO">Copy order</button></p></div>`;
+ $('#otext').textContent=text;
+ $('#copyO').onclick=()=>navigator.clipboard.writeText(text).then(()=>toast('Order copied'),()=>{const r=document.createRange();r.selectNodeContents($('#otext'));const s=getSelection();s.removeAllRanges();s.addRange(r)});
+ location.href=`mailto:${CONTACT.email}?subject=${encodeURIComponent('New order '+ref+' – '+f.name.value)}&body=${encodeURIComponent(text)}`;
+ BAG.length=0;saveBag();renderBag();
+});
+
+</script>
+</body>
+</html>
