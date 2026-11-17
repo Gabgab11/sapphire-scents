@@ -52,7 +52,7 @@ function render(){
   if(state.q&&!(p.name+' '+p.family+' '+p.notes.join(' ')+' '+p.story).toLowerCase().includes(state.q))return false;
   return true});
  if(state.sort==='low')L.sort((a,b)=>a.price-b.price);if(state.sort==='high')L.sort((a,b)=>b.price-a.price);if(state.sort==='az')L.sort((a,b)=>a.name.localeCompare(b.name));
- $('#grid').innerHTML=L.length?L.map(perfumeCard).join(''):`<div class="empty">No perfumes match that. <button class="linkbtn" id="clr">Clear filters</button></div>`;
+ $('#grid').innerHTML=L.length?L.map(perfumeCard).join(''):`<div class="empty">No perfumes match that. <button class="linkbtn" id="clr">Clear filters</button>${state.q?` or <a class="tlink" href="search.html?q=${encodeURIComponent(state.q)}">search refills and diffusers too</a>`:''}</div>`;
  $('#resultN').textContent=`${L.length} perfume${L.length===1?'':'s'}`;
  const u=new URL(location);['c','note','q'].forEach(k=>u.searchParams.delete(k));if(state.chip!=='all')u.searchParams.set('c',state.chip);if(state.note)u.searchParams.set('note',state.note);if(state.q)u.searchParams.set('q',state.q);history.replaceState(null,'',u);
 }

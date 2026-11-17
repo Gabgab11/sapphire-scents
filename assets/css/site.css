@@ -621,3 +621,19 @@ a.nchip:hover{border-color:var(--gold)}
 .lu-nav{display:none;gap:8px;margin-top:12px;pointer-events:auto}
 .lineup.nopin .lu-nav{display:flex}
 .lu-nav button{width:42px;height:42px;border:1px solid var(--line);background:rgba(7,12,41,.6);color:var(--ink);font-size:16px}
+
+/* site-wide search */
+.msearch{display:flex;align-items:center;gap:10px;margin:6px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:999px;color:var(--mid)}
+.msearch input{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--ink);font:inherit;font-size:16px}
+.msearch input::placeholder{color:var(--dim)}
+.sform{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px;max-width:560px}
+.sform input{flex:1 1 220px;min-width:0;font-size:16px}
+.sgroup+.sgroup{margin-top:48px}
+.sghead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:18px}
+.sghead h2{font-family:var(--display);font-weight:400;font-size:clamp(26px,3vw,34px);margin:0}
+.sghead h2 span{font-family:var(--body,inherit);font-size:13px;color:var(--mid);margin-left:6px;vertical-align:middle}
+/* iPhone zooms into any field under 16px; keep fields at 16px on touch screens */
+@media (hover:none) and (pointer:coarse){select,.field-inline,.field input,.field textarea,.field select{font-size:16px}}
+/* sending state for forms */
+.btn[aria-busy="true"]{opacity:.6;pointer-events:none}
+.sent-ok{border:1px solid var(--line);padding:18px 20px;margin-top:6px}

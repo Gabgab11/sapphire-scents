@@ -31,13 +31,14 @@
       <div class="row2"><div class="field"><label for="oc">City</label><input id="oc" name="city" required autocomplete="address-level2" placeholder=" "></div>
       <div class="field"><label for="os">State / Country</label><input id="os" name="state" required autocomplete="address-level1" placeholder=" "></div></div>
       <div class="field"><label for="ox">Order notes (optional)</label><textarea id="ox" name="notes" placeholder=" " style="min-height:90px"></textarea></div>
+      <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
       <p id="oerr" role="alert" hidden style="color:#ff8a7a;margin:0"></p>
       <div><button class="btn solid" type="submit">Place order</button></div>
     </form>
   </div>
   <aside class="summary" aria-label="Order summary">
     <h2>Your order</h2><div id="sumLines"></div><div class="sumtotal"><span>Subtotal</span><span id="sumTotal">₦0</span></div>
-    <ol class="steps"><li>Place your order. It is sent to the Sapphire team by email.</li><li>The team confirms availability and your delivery cost.</li><li>You receive payment details, and your order is dispatched once paid.</li></ol>
+    <ol class="steps"><li>Place your order. It goes straight to the Sapphire team.</li><li>The team confirms availability and your delivery cost.</li><li>You receive payment details, and your order is dispatched once paid.</li></ol>
   </aside>
 </div></section>
 </main>
@@ -51,20 +52,34 @@ function sum(){
  $('#sumTotal').textContent=naira(bagTotal());
 }
 sum();addEventListener('storage',sum);document.addEventListener('click',()=>setTimeout(sum,0));
-$('#oform').addEventListener('submit',e=>{e.preventDefault();const f=e.target,err=$('#oerr');
+async function post(data){try{const r=await fetch('/api/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const j=await r.json().catch(()=>({}));return r.ok&&j.ok?j:null}catch(e){return null}}
+$('#oform').addEventListener('submit',async e=>{e.preventDefault();const f=e.target,err=$('#oerr'),btn=f.querySelector('[type=submit]');
+ if(btn.getAttribute('aria-busy')==='true')return;
  if(!BAG.length){err.hidden=false;err.textContent='Your bag is empty. Add a perfume, refill or diffuser first.';return}
  if(!f.checkValidity()){err.hidden=false;err.textContent='Please fill in your name, phone, email and delivery address.';f.querySelector(':invalid').focus();return}
  err.hidden=true;
+ const v=k=>f.elements[k].value.trim();
+ const cu={name:v('name'),phone:v('phone'),email:v('email'),address:v('address'),city:v('city'),state:v('state'),notes:v('notes')};
  const ref='SS-'+Date.now().toString(36).toUpperCase().slice(-6);
  const lines=BAG.map(l=>{const p=byId[l.id];return `• ${p.name} (${p.kind}${l.opt?', '+l.opt:''}) × ${l.qty}: ${naira(p.price*l.qty)}`}).join('\n');
- const text=`New order ${ref}\n\n${lines}\n\nSubtotal: ${naira(bagTotal())}\n\nName: ${f.name.value}\nPhone: ${f.phone.value}\nEmail: ${f.email.value}\nAddress: ${f.address.value}, ${f.city.value}, ${f.state.value}${f.notes.value?'\nNotes: '+f.notes.value:''}`;
- $('#coForm').innerHTML=`<div class="done"><div class="eyebrow">Order ${ref}</div><h2>Thank you, ${f.name.value.split(' ')[0]}</h2><p style="color:var(--mid)">Your email app should open with the order addressed to the Sapphire team. Press send, and the team will confirm availability, delivery cost and payment details. If it didn’t open, copy the order below and email it to <b>${CONTACT.email}</b>.</p><pre id="otext"></pre><p><button class="btn" id="copyO">Copy order</button></p></div>`;
+ const text=`New order ${ref}\n\n${lines}\n\nSubtotal: ${naira(bagTotal())}\n\nName: ${cu.name}\nPhone: ${cu.phone}\nEmail: ${cu.email}\nAddress: ${cu.address}, ${cu.city}, ${cu.state}${cu.notes?'\nNotes: '+cu.notes:''}`;
+ btn.setAttribute('aria-busy','true');btn.textContent='Placing order…';
+ const sent=await post({type:'order',ref,customer:cu,items:BAG.map(({id,qty,opt})=>({id,qty,opt})),website:f.elements.website.value});
+ const first=esc(cu.name.split(' ')[0]);
+ window.scrollTo({top:0,behavior:'smooth'});
+ if(sent){
+  $('#coForm').innerHTML=`<div class="done"><div class="eyebrow">Order ${ref}</div><h2>Thank you, ${first}</h2><p style="color:var(--mid)">Your order is with the Sapphire team. They will contact you on <b>${esc(cu.phone)}</b> to confirm availability, delivery cost and payment. A copy has been sent to <b>${esc(cu.email)}</b>.</p><pre id="otext"></pre><p><a class="btn" href="perfumes.html">Keep shopping</a></p></div>`;
+  $('#otext').textContent=text;BAG.length=0;saveBag();renderBag();sum();return;
+ }
+ // Fallback: the customer sends the order themselves; the bag stays until they do
+ const mail=`mailto:${CONTACT.email}?subject=${encodeURIComponent('New order '+ref+' – '+cu.name)}&body=${encodeURIComponent(text)}`;
+ $('#coForm').innerHTML=`<div class="done"><div class="eyebrow">Order ${ref}</div><h2>One last step, ${first}</h2><p style="color:var(--mid)">Send this order to the Sapphire team to complete it. Tap <b>Email the order</b>, or copy it and send it to <b>${CONTACT.email}</b> or by Instagram message to <b>@sapphirescents</b>. The team will confirm availability, delivery cost and payment.</p><pre id="otext"></pre><p style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn solid" id="mailO" href="${mail}">Email the order</a><button class="btn" id="copyO" type="button">Copy order</button><a class="btn" href="${CONTACT.instagram}" target="_blank" rel="noopener">Open Instagram</a></p></div>`;
  $('#otext').textContent=text;
- $('#copyO').onclick=()=>navigator.clipboard.writeText(text).then(()=>toast('Order copied'),()=>{const r=document.createRange();r.selectNodeContents($('#otext'));const s=getSelection();s.removeAllRanges();s.addRange(r)});
- location.href=`mailto:${CONTACT.email}?subject=${encodeURIComponent('New order '+ref+' – '+f.name.value)}&body=${encodeURIComponent(text)}`;
- BAG.length=0;saveBag();renderBag();
+ const doneSending=()=>{BAG.length=0;saveBag();renderBag();sum()};
+ $('#mailO').onclick=()=>setTimeout(doneSending,500);
+ $('#copyO').onclick=()=>{const sel=()=>{const r=document.createRange();r.selectNodeContents($('#otext'));const s=getSelection();s.removeAllRanges();s.addRange(r)};
+  (navigator.clipboard?navigator.clipboard.writeText(text):Promise.reject()).then(()=>{toast('Order copied');doneSending()},()=>{sel();toast('Order selected: copy it from the box')})};
 });
-
 </script>
 </body>
 </html>

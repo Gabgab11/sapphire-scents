@@ -20,3 +20,12 @@ Plain HTML, CSS and JavaScript. No framework or build step.
 The bag is kept in the visitor's browser. Checkout sends the order to info@shopsapphirescents.com by email; the team then confirms delivery and payment. Online card payment (for example Paystack) can be added later.
 
 Deployed on Vercel from the `main` branch.
+
+## Order and contact emails
+Checkout orders and contact messages are sent by `api/send.js` (a Vercel function using Resend).
+Set these in Vercel → Project → Settings → Environment Variables, then redeploy:
+- `RESEND_API_KEY` – Resend API key
+- `MAIL_FROM` – sender on a domain verified in Resend, e.g. `Sapphire Scents <orders@shopsapphirescents.com>`
+- `MAIL_TO` – inbox for orders (defaults to info@shopsapphirescents.com)
+
+Until they are set, the site falls back to letting the customer email, copy or Instagram the order.

@@ -26,9 +26,10 @@
       <div class="field"><label for="ce">Your email</label><input id="ce" name="email" type="email" required autocomplete="email" placeholder=" "></div></div>
       <div class="field"><label for="cs">Subject</label><select id="cs" name="subject"><option>A question about a perfume</option><option>An order</option><option>Diffusers for my home or business</option><option>Becoming a distributor</option><option>Something else</option></select></div>
       <div class="field"><label for="cm">Your message</label><textarea id="cm" name="message" required placeholder=" "></textarea></div>
+      <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
       <p class="form-err" id="cerr" role="alert" hidden style="color:#ff8a7a;margin:0"></p>
       <div><button class="btn solid" type="submit">Send message</button></div>
-      <p class="dnote">Sending opens your email app with your message addressed to info@shopsapphirescents.com.</p>
+      <div id="cnote" aria-live="polite"></div>
     </form>
   </div>
   <div class="contact-cards">
@@ -44,12 +45,19 @@
 <script src="assets/js/site.js"></script>
 <script>
 
-if(location.hash==='#distributors')$('#cs').value='Becoming a distributor';
-$('#cform').addEventListener('submit',e=>{e.preventDefault();const f=e.target;const err=$('#cerr');
+const dist=()=>{if(location.hash==='#distributors'){$('#cs').value='Becoming a distributor';$('#distributors').scrollIntoView({block:'center'})}};dist();addEventListener('hashchange',dist);
+$('#cform').addEventListener('submit',async e=>{e.preventDefault();const f=e.target;const err=$('#cerr');const btn=f.querySelector('[type=submit]');
+ if(btn.getAttribute('aria-busy')==='true')return;
  if(!f.checkValidity()){err.hidden=false;err.textContent='Please add your name, a valid email and a message.';f.querySelector(':invalid').focus();return}
- err.hidden=true;const body=`${f.message.value}\n\n${f.name.value}\n${f.email.value}`;
- location.href=`mailto:${CONTACT.email}?subject=${encodeURIComponent(f.subject.value+' – '+f.name.value)}&body=${encodeURIComponent(body)}`;
- toast('Opening your email app…')});
+ err.hidden=true;const v=k=>f.elements[k].value.trim();
+ const d={type:'contact',name:v('name'),email:v('email'),subject:v('subject'),message:v('message'),website:f.elements.website.value};
+ btn.setAttribute('aria-busy','true');btn.textContent='Sending…';
+ let ok=false;try{const r=await fetch('/api/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});const j=await r.json().catch(()=>({}));ok=r.ok&&j.ok}catch(_){}
+ btn.removeAttribute('aria-busy');btn.textContent='Send message';
+ if(ok){f.reset();$('#cnote').innerHTML=`<div class="sent-ok"><b>Message sent.</b> Thank you, ${esc(d.name.split(' ')[0])}. The Sapphire team will reply to ${esc(d.email)}.</div>`;toast('Message sent');return}
+ const body=`${d.message}\n\n${d.name}\n${d.email}`;
+ $('#cnote').innerHTML=`<div class="sent-ok">We couldn’t send it from here. <a class="tlink" href="mailto:${CONTACT.email}?subject=${encodeURIComponent(d.subject+' – '+d.name)}&body=${encodeURIComponent(body)}">Send it with your email app</a>, or email <b>${CONTACT.email}</b> directly.</div>`;
+});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-copy]');if(!b)return;navigator.clipboard.writeText(b.dataset.copy).then(()=>toast('Email address copied'),()=>{const r=document.createRange();r.selectNodeContents($('#em'));const s=getSelection();s.removeAllRanges();s.addRange(r)})});
 
 </script>

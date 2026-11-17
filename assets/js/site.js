@@ -15,12 +15,12 @@ function renderChrome(){
     <a class="logo" href="index.html" aria-label="Sapphire Scents home">Sapphire <em>Scents</em></a>
     <ul class="nav-links">${links}</ul>
     <div class="nav-tools">
-      <form class="search" action="perfumes.html" role="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="q" name="q" type="search" placeholder="Search scents" aria-label="Search scents"></form>
+      <form class="search" action="search.html" role="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="q" name="q" type="search" placeholder="Search scents" aria-label="Search perfumes, refills and diffusers"></form>
       <button class="bagbtn" id="bagBtn" aria-label="Open bag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 8h14l1 13H4Z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg><span>Bag (<span id="bagCount">0</span>)</span></button>
       <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="mmenu"><i></i><i></i><i></i></button>
     </div>
   </div>
-  <nav class="mmenu" id="mmenu" hidden aria-label="Menu"><ul>${links}</ul></nav>`;
+  <nav class="mmenu" id="mmenu" hidden aria-label="Menu"><form class="msearch" action="search.html" role="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="mq" name="q" type="search" placeholder="Search perfumes, refills, diffusers" aria-label="Search perfumes, refills and diffusers" enterkeyhint="search"></form><ul>${links}</ul></nav>`;
   $('#burger').addEventListener('click',()=>{const m=$('#mmenu'),o=m.hidden;m.hidden=!o;$('#burger').setAttribute('aria-expanded',String(o));hd.classList.toggle('menu-open',o)});
   const year=new Date().getFullYear();
   $('#site-footer').innerHTML=`<div class="wrap">
