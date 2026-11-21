@@ -693,3 +693,8 @@ body.lit-text .hprice{animation:rise 1s .38s both}
   .ehero .hctas .pill{flex:1 1 100%;justify-content:center}
 }
 @media (prefers-reduced-motion:reduce){.mist i{animation:none;opacity:.32;transform:translate(-50%,-40%) scale(1.5)}.mist i:nth-child(n+3){display:none}.mist .jet{animation:none}}
+
+.paybtns{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.paybtns .btn{min-height:48px}
+@media(max-width:560px){.paybtns .btn{flex:1 1 100%;justify-content:center}}
+.steps[hidden],.paybtns [hidden],.dnote[hidden]{display:none!important}

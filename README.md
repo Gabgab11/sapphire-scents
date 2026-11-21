@@ -44,3 +44,14 @@ Adding staff: an owner adds the email on the dashboard's Team tab, then creates 
 Connect this GitHub repo in Cloudflare Pages (no build command, output directory `/`). The server code is in `functions/`
 (`/api/catalog`, `/api/send`); `_headers` sets caching. Environment variables for order emails: `RESEND_API_KEY` (secret),
 `MAIL_FROM`, `MAIL_TO`. The `api/` folder and `vercel.json` are the old Vercel versions and can be deleted after the move.
+
+## Paying online (Paystack)
+
+Checkout has a **Pay now** button that appears only once Paystack is switched on. To switch it on, add `PAYSTACK_SECRET_KEY` (a secret) in Cloudflare › Workers & Pages › sapphire-scents › Settings › Variables and secrets, then redeploy. Use the `sk_test_…` key first, then swap in `sk_live_…`.
+
+- `/api/pay/init` re-prices the bag from the database (the browser's prices are ignored) and opens a Paystack payment.
+- `/api/pay/verify` asks Paystack whether the payment went through before the customer sees "Paid".
+- `/api/pay/webhook` emails the team and the customer when Paystack confirms a payment. Set it in Paystack › Settings › API Keys & Webhooks as `https://www.shopsapphirescents.com/api/pay/webhook`.
+- Every payment also appears in the Paystack dashboard with the customer, address and items.
+- The payment covers the products. Delivery is agreed with the customer afterwards, as before.
+- "Place order, pay later" still works the old way.
