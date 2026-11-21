@@ -5,6 +5,7 @@ import { json, naira } from '../../_lib/shop.js';
 import { orderLines, whoText, sendMail, canMail, teamEmail, place } from '../../_lib/order.js';
 import { payReady } from '../../_lib/paystack.js';
 import { firstName } from '../../_lib/order.js';
+import { markPaid } from '../../_lib/orders.js';
 
 async function hmac512(key, body) {
   const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(key), { name: 'HMAC', hash: 'SHA-512' }, false, ['sign']);
@@ -22,12 +23,14 @@ export async function onRequestPost({ request, env }) {
   if (!sig || diff) return json(401, { ok: false });
   let ev = {};
   try { ev = JSON.parse(body); } catch (e) { return json(400, { ok: false }); }
-  if (ev.event !== 'charge.success' || !canMail(env)) return json(200, { ok: true });
+  if (ev.event !== 'charge.success') return json(200, { ok: true });
   const d = ev.data || {}, m = d.metadata || {}, cu = m.customer || {};
   if (!m.order || !Array.isArray(m.items)) return json(200, { ok: true }); // not a website order
   if (d.status !== 'success' || d.currency !== 'NGN' || d.amount !== Math.round((m.total || 0) * 100)) {
     console.error('webhook amount mismatch', d.reference); return json(200, { ok: true });
   }
+  await markPaid(env, m.order, { amount: d.amount / 100, paystackRef: d.reference });
+  if (!canMail(env)) return json(200, { ok: true });
   const amount = naira(d.amount / 100), lines = orderLines(m.items), TO = teamEmail(env);
   try {
     await sendMail(env, { to: TO, replyTo: cu.email, subject: `PAID order ${m.order} – ${cu.name} – ${amount}`, text: `Paid website order ${m.order}\nPaid ${amount} by ${d.channel || 'Paystack'} (Paystack ref ${d.reference})\n\n${lines}\n\nDelivery cost to be agreed with the customer.\n\n${whoText(cu)}` });

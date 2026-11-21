@@ -3,6 +3,7 @@
 import { json } from '../../_lib/shop.js';
 import { clean, buildOrder, place } from '../../_lib/order.js';
 import { payReady, payMode, paystack, newRef } from '../../_lib/paystack.js';
+import { saveOrder } from '../../_lib/orders.js';
 
 export const onRequestGet = ({ env }) => json(200, { enabled: payReady(env), mode: payReady(env) ? payMode(env) : null });
 
@@ -36,6 +37,7 @@ export async function onRequestPost({ request, env }) {
         }
       })
     });
+    await saveOrder(env, { ref, channel: 'paystack', status: 'awaiting_payment', cu, items, total });
     return json(200, { ok: true, ref, total, url: d.authorization_url });
   } catch (e) {
     console.error('pay init', e.message);

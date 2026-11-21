@@ -2,6 +2,7 @@
 import { json, naira } from '../../_lib/shop.js';
 import { clean, orderLines } from '../../_lib/order.js';
 import { payReady, paystack } from '../../_lib/paystack.js';
+import { markPaid } from '../../_lib/orders.js';
 
 export async function onRequestGet({ request, env }) {
   if (!payReady(env)) return json(503, { ok: false, error: 'Online payment is not switched on yet' });
@@ -11,6 +12,7 @@ export async function onRequestGet({ request, env }) {
     const d = await paystack(env, '/transaction/verify/' + encodeURIComponent(ref));
     const m = d.metadata || {};
     const paid = d.status === 'success' && d.currency === 'NGN' && d.amount === Math.round((m.total || 0) * 100);
+    if (paid && m.order) await markPaid(env, m.order, { amount: d.amount / 100, paystackRef: d.reference });
     const cu = m.customer || {};
     return json(200, {
       ok: true, paid, status: d.status, ref,

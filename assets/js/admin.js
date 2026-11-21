@@ -11,7 +11,7 @@ const TAGS=['best','new','sweet','floral','woody','fresh','fruity'];
 const TAGNAMES={best:'Best seller',new:'New',sweet:'Sweet',floral:'Floral',woody:'Woody',fresh:'Fresh',fruity:'Fruity'};
 const slug=s=>String(s||'').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g,'').replace(/&/g,' and ').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60);
 
-let CFG=null,S=null,ME=null,PRODUCTS=[],VIEW='products',FILTER={q:'',type:'all',status:'all'};
+let CFG=null,S=null,ME=null,PRODUCTS=[],VIEW='overview',FILTER={q:'',type:'all',status:'all'};
 
 /* ---------------- tiny Supabase client ---------------- */
 const KEY='ss_admin_session';
@@ -107,7 +107,7 @@ async function signOut(){try{if(S)await authCall('logout',null,'POST',S.access_t
 
 /* ---------------- shell ---------------- */
 function shell(){
-  const tabs=[['products','Products'],['bulk','Bulk upload'],['history','History'],['team','Team']];
+  const tabs=[['overview','Overview'],['orders','Orders'],['products','Products'],['bulk','Bulk upload'],['history','History'],['team','Team']];
   $('#app').innerHTML=`<header class="top"><div class="top-in">
     <a class="brand" href="index.html" target="_blank" rel="noopener"><img src="images/brand/wordmark.svg" alt="Sapphire Scents" style="height:26px;width:auto;vertical-align:middle"><small>Dashboard</small></a>
     <nav class="tabs" role="tablist" aria-label="Dashboard sections">${tabs.map(([k,l])=>`<button role="tab" data-tab="${k}" aria-selected="${VIEW===k}">${l}</button>`).join('')}</nav>
@@ -116,7 +116,7 @@ function shell(){
   <div class="dlg" id="dlg" hidden></div>`;
   $$('[data-tab]').forEach(b=>b.onclick=()=>{VIEW=b.dataset.tab;try{history.replaceState(null,'','#'+VIEW)}catch(e){}shell()});
   $('#out').onclick=signOut;
-  ({products:productsView,bulk:bulkView,history:historyView,team:teamView})[VIEW]();
+  ({overview:overviewView,orders:ordersView,products:productsView,bulk:bulkView,history:historyView,team:teamView})[VIEW]();
 }
 async function loadProducts(){PRODUCTS=await api('products?select=*&order=type.asc,sort.asc,name.asc')||[]}
 
@@ -450,6 +450,131 @@ async function historyView(){
   $('#hl').innerHTML=rows.map(r=>`<div class="hrow"><time datetime="${esc(r.changed_at)}">${new Date(r.changed_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</time><div>${say(r)}<br><small>by ${esc(r.changed_by||'unknown')}</small></div></div>`).join('');
 }
 
+/* ---------------- orders ---------------- */
+const OST={new:'New',awaiting_payment:'Awaiting payment',paid:'Paid',confirmed:'Confirmed',dispatched:'Sent out',delivered:'Delivered',cancelled:'Cancelled'};
+const OSTEP=['new','awaiting_payment','paid','confirmed','dispatched','delivered','cancelled'];
+const TODO=['new','paid','confirmed'];
+const MONEY=['paid','confirmed','dispatched','delivered'];
+let ORDERS=null,ORDERS_ERR='',OF={q:'',st:'todo',days:'30'};
+async function loadOrders(force){
+  if(ORDERS&&!force)return;
+  try{ORDERS=await api('orders?select=*&order=created_at.desc&limit=1000')||[];ORDERS_ERR=''}
+  catch(e){ORDERS=[];ORDERS_ERR=/does not exist|schema cache|orders/i.test(e.message)?'Orders aren’t switched on yet. They start appearing once the shop is connected to the order list.':e.message}
+}
+const oDate=o=>new Date(o.created_at);
+const ago=d=>{const s=(Date.now()-d)/1000;if(s<60)return 'just now';if(s<3600)return Math.floor(s/60)+' min ago';if(s<86400)return Math.floor(s/3600)+' h ago';if(s<172800)return 'yesterday';return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})};
+const oWho=o=>(o.customer&&o.customer.name)||'Customer';
+const oItems=o=>(o.items||[]).map(i=>`${i.name}${i.opt?' ('+i.opt+')':''} × ${i.qty}`).join(', ');
+const oPlace=c=>[c.address,c.city,c.state,c.country].filter(Boolean).join(', ');
+const waNum=p=>{let d=String(p||'').replace(/\D/g,'');if(d.startsWith('0')&&d.length===11)d='234'+d.slice(1);return d};
+const stTag=s=>`<span class="ost ${s}">${OST[s]||s}</span>`;
+const chTag=c=>`<span class="tag">${c==='paystack'?'Paystack':'WhatsApp'}</span>`;
+const money=o=>MONEY.includes(o.status)?(o.paid_amount||o.total||0):0;
+
+async function overviewView(){
+  const v=$('#view');v.innerHTML=`<div class="head"><div><h2>Good ${new Date().getHours()<12?'morning':new Date().getHours()<17?'afternoon':'evening'}, ${esc((ME.name||ME.email).split(/[ @]/)[0])}</h2><p>Everything at a glance. Tap any box to open it.</p></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn amber" id="qa_add">+ Add product</button><button class="btn" id="qa_bulk">Bulk upload</button></div></div><div id="ov"><div class="empty">Loading…</div></div>`;
+  $('#qa_add').onclick=()=>{VIEW='products';shell();setTimeout(()=>editor(null),0)};
+  $('#qa_bulk').onclick=()=>{VIEW='bulk';shell()};
+  await loadOrders(true);
+  const now=new Date(),sod=new Date(now.getFullYear(),now.getMonth(),now.getDate()),som=new Date(now.getFullYear(),now.getMonth(),1),sow=new Date(sod-((sod.getDay()+6)%7)*864e5);
+  const live=ORDERS.filter(o=>o.status!=='cancelled');
+  const n=f=>live.filter(f).length;
+  const month=live.filter(o=>oDate(o)>=som);
+  const best={};month.forEach(o=>(o.items||[]).forEach(i=>{best[i.name]=(best[i.name]||0)+(+i.qty||0)}));
+  const top=Object.entries(best).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const P=PRODUCTS,cnt=s=>P.filter(p=>statusOf(p)===s).length;
+  const box=(go,label,val,sub,hot)=>`<button class="stat${hot?' hot':''}" data-go="${go}"><small>${label}</small><b>${val}</b>${sub?`<span>${sub}</span>`:''}</button>`;
+  $('#ov').innerHTML=`${ORDERS_ERR?`<div class="note">${esc(ORDERS_ERR)}</div>`:''}
+   <div class="stats">
+    ${box('orders:todo','Need action',n(o=>TODO.includes(o.status)),'new or paid, not sent out',n(o=>TODO.includes(o.status))>0)}
+    ${box('orders:all:1','Orders today',n(o=>oDate(o)>=sod),'')}
+    ${box('orders:all:7','This week',n(o=>oDate(o)>=sow),'')}
+    ${box('orders:all:30','Money in this month',fmt(month.reduce((s,o)=>s+money(o),0)),`${month.filter(o=>MONEY.includes(o.status)).length} paid orders`)}
+    ${box('orders:awaiting_payment','Awaiting payment',n(o=>o.status==='awaiting_payment'),'started Paystack, not finished')}
+    ${box('products:live','On the shop',cnt('live'),'products live')}
+    ${box('products:sold','Sold out',cnt('sold'),'tap to restock',cnt('sold')>0)}
+    ${box('products:hidden','Hidden',cnt('hidden'),'not on the shop')}
+   </div>
+   <div class="cards2" style="margin-top:18px">
+    <section class="card"><h3>Latest orders</h3>${ORDERS.length?`<div class="olist">${ORDERS.slice(0,6).map(oRow).join('')}</div><button class="btn small" data-go="orders:all:30">See all orders</button>`:'<p class="hint">No orders yet. They appear here the moment a customer pays or sends an order on WhatsApp.</p>'}</section>
+    <section class="card"><h3>Best sellers this month</h3>${top.length?`<ol class="best">${top.map(([k,q])=>`<li><span>${esc(k)}</span><b>${q}</b></li>`).join('')}</ol>`:'<p class="hint">Nothing sold yet this month.</p>'}</section>
+   </div>`;
+  $$('#ov [data-go]').forEach(b=>b.onclick=()=>{const [view,a,c]=b.dataset.go.split(':');
+    if(view==='products'){FILTER={q:'',type:'all',status:a};VIEW='products';shell();return}
+    OF={q:'',st:a,days:c||'all'};VIEW='orders';shell()});
+  $$('#ov [data-oid]').forEach(r=>r.onclick=()=>orderPanel(ORDERS.find(o=>o.id===r.dataset.oid)));
+}
+function oRow(o){return `<button class="orow" data-oid="${esc(o.id)}"><span class="o1"><b>${esc(oWho(o))}</b><small>${esc(o.id)} · ${ago(oDate(o))}</small></span><span class="o2">${esc(oItems(o))}</span><span class="o3"><b>${fmt(o.total)}</b>${chTag(o.channel)}</span><span class="o4">${stTag(o.status)}</span></button>`}
+
+async function ordersView(){
+  const v=$('#view');
+  v.innerHTML=`<div class="head"><div><h2>Orders</h2><p>Every order from the website. Change the status as you go; tap an order for the details.</p></div>
+    <div style="display:flex;gap:8px"><button class="btn" id="o_ref">Refresh</button><button class="btn" id="o_csv">Download CSV</button></div></div>
+  <div class="bar"><input class="in" id="oq" type="search" placeholder="Search name, phone, email or order number" aria-label="Search orders" value="${esc(OF.q)}">
+    <select class="sel" id="od" aria-label="Period" style="width:auto">${[['1','Today'],['7','Last 7 days'],['30','Last 30 days'],['90','Last 3 months'],['all','All time']].map(([k,l])=>`<option value="${k}"${OF.days===k?' selected':''}>${l}</option>`).join('')}</select>
+    <span class="count" id="ocnt"></span></div>
+  <div class="chips" id="ochips" role="group" aria-label="Order status" style="margin:0 0 14px"></div>
+  <div id="ol"><div class="empty">Loading…</div></div>`;
+  $('#oq').oninput=e=>{OF.q=e.target.value;drawOrders()};
+  $('#od').onchange=e=>{OF.days=e.target.value;drawOrders()};
+  $('#o_ref').onclick=async()=>{await loadOrders(true);drawOrders();toast('Orders updated')};
+  $('#o_csv').onclick=()=>{const L=filtered();download(`sapphire-orders-${new Date().toISOString().slice(0,10)}.csv`,makeCSV([['Order','Date','Status','Paid with','Name','Phone','Email','Address','Items','Total (NGN)','Paid (NGN)','Note'],...L.map(o=>{const c=o.customer||{};return [o.id,oDate(o).toLocaleString('en-GB'),OST[o.status],o.channel,c.name,c.phone,c.email,oPlace(c),oItems(o),o.total,o.paid_amount||'',o.note||'']})]))};
+  await loadOrders(true);drawOrders();
+}
+function inPeriod(o){if(OF.days==='all')return true;const d=+OF.days;const since=d===1?new Date(new Date().setHours(0,0,0,0)):new Date(Date.now()-d*864e5);return oDate(o)>=since}
+function filtered(){const q=OF.q.trim().toLowerCase();
+  return ORDERS.filter(o=>inPeriod(o)&&(OF.st==='all'||(OF.st==='todo'?TODO.includes(o.status):o.status===OF.st))&&(!q||[o.id,JSON.stringify(o.customer||{})].join(' ').toLowerCase().includes(q)))}
+function drawOrders(){
+  if(ORDERS_ERR){$('#ol').innerHTML=`<div class="empty">${esc(ORDERS_ERR)}</div>`;return}
+  const per=ORDERS.filter(inPeriod),c=s=>s==='all'?per.length:s==='todo'?per.filter(o=>TODO.includes(o.status)).length:per.filter(o=>o.status===s).length;
+  $('#ochips').innerHTML=[['todo','Need action'],['all','All'],...OSTEP.map(s=>[s,OST[s]])].map(([k,l])=>`<button class="chip" data-ost="${k}" aria-pressed="${OF.st===k}">${l} <span class="n">${c(k)}</span></button>`).join('');
+  $$('[data-ost]').forEach(b=>b.onclick=()=>{OF.st=b.dataset.ost;drawOrders()});
+  const L=filtered();
+  $('#ocnt').textContent=`${L.length} order${L.length===1?'':'s'} · ${fmt(L.reduce((s,o)=>s+money(o),0))} paid`;
+  $('#ol').innerHTML=L.length?`<div class="olist">${L.map(oRow).join('')}</div>`:`<div class="empty">No orders here${OF.st==='todo'?'. Nothing needs action right now.':'.'}</div>`;
+  $$('#ol [data-oid]').forEach(r=>r.onclick=()=>orderPanel(ORDERS.find(o=>o.id===r.dataset.oid)));
+}
+function orderPanel(o){
+  if(!o)return;const c=o.customer||{},dlg=$('#dlg');dlg.hidden=false;
+  const close=()=>{dlg.hidden=true;dlg.innerHTML='';document.removeEventListener('keydown',onKey)};
+  const onKey=e=>{if(e.key==='Escape')close()};document.addEventListener('keydown',onKey);
+  dlg.onclick=e=>{if(e.target===dlg)close()};
+  const wa=waNum(c.phone),first=(c.name||'').split(' ')[0];
+  const waMsg=encodeURIComponent(`Hello ${first}, this is Sapphire Scents about your order ${o.id}. `);
+  dlg.innerHTML=`<section class="panel" role="dialog" aria-modal="true" aria-labelledby="o_h">
+   <div class="phead"><h3 id="o_h">${esc(o.id)}</h3><button class="btn ghost small" id="o_x" aria-label="Close">✕</button></div>
+   <div class="pbody">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${stTag(o.status)} ${chTag(o.channel)} <span class="hint">${oDate(o).toLocaleString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span></div>
+    <fieldset><legend>Customer</legend>
+     <div><b style="font-size:17px">${esc(c.name||'')}</b><br>${esc(c.phone||'')} · ${esc(c.email||'')}</div>
+     <div>${esc(oPlace(c))}</div>${c.notes?`<div class="hint">Customer note: ${esc(c.notes)}</div>`:''}
+     <div style="display:flex;gap:8px;flex-wrap:wrap">${wa?`<a class="btn small wa" href="https://wa.me/${wa}?text=${waMsg}" target="_blank" rel="noopener">WhatsApp customer</a><a class="btn small" href="tel:+${wa}">Call</a>`:''}${c.email?`<a class="btn small" href="mailto:${esc(c.email)}?subject=${encodeURIComponent('Your Sapphire Scents order '+o.id)}">Email</a>`:''}</div>
+    </fieldset>
+    <fieldset><legend>Items</legend>
+     <table class="t"><tbody>${(o.items||[]).map(i=>`<tr><td>${esc(i.name)}${i.opt?` <small>(${esc(i.opt)})</small>`:''}<br><small>${esc(i.kind||'')}</small></td><td>× ${+i.qty||1}</td><td style="text-align:right">${fmt(i.amount)}</td></tr>`).join('')}
+     <tr><td colspan="2"><b>Total</b></td><td style="text-align:right"><b>${fmt(o.total)}</b></td></tr>
+     ${o.paid_amount?`<tr><td colspan="2">Paid${o.paystack_ref?` <small>(Paystack ${esc(o.paystack_ref)})</small>`:''}</td><td style="text-align:right">${fmt(o.paid_amount)}</td></tr>`:''}</tbody></table>
+     <p class="hint">Delivery is not included. Agree it with the customer.</p>
+    </fieldset>
+    <fieldset><legend>Status</legend>
+     <div class="steps-o">${OSTEP.filter(s=>s!=='awaiting_payment'||o.status==='awaiting_payment').map(s=>`<button class="chip" data-set="${s}" aria-pressed="${o.status===s}">${OST[s]}</button>`).join('')}</div>
+     <label class="f">Team note (only staff see this)<textarea class="in" id="o_note" rows="3" maxlength="2000">${esc(o.note||'')}</textarea></label>
+     <div><button class="btn small primary" id="o_save">Save note</button></div>
+     ${o.updated_by?`<p class="hint">Last changed by ${esc(o.updated_by)} · ${new Date(o.updated_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</p>`:''}
+    </fieldset>
+   </div>
+   <div class="pfoot"><button class="btn small" id="o_print">Print packing slip</button><button class="btn" id="o_close">Close</button></div></section>`;
+  $('#o_x').onclick=close;$('#o_close').onclick=close;
+  const save=async(changes,msg)=>{try{const r=await api(`orders?id=eq.${encodeURIComponent(o.id)}`,{method:'PATCH',body:changes,prefer:'return=representation'});if(!r||!r.length)throw new Error('That change wasn’t saved.');Object.assign(o,r[0]);toast(msg);return true}catch(e){toast(e.message,true);return false}};
+  $$('[data-set]').forEach(b=>b.onclick=async()=>{const s=b.dataset.set;if(s===o.status)return;
+    if(s==='cancelled'&&b.dataset.sure!=='1'){b.dataset.sure='1';b.textContent='Tap again to cancel';return}
+    if(await save({status:s},`${o.id} is now ${OST[s]}`)){orderPanel(o);VIEW==='orders'?drawOrders():VIEW==='overview'&&overviewView()}});
+  $('#o_save').onclick=()=>save({note:$('#o_note').value.trim()||null},'Note saved');
+  $('#o_print').onclick=()=>{const w=window.open('','_blank');if(!w)return toast('Allow pop-ups to print',true);
+    w.document.write(`<title>${esc(o.id)}</title><body style="font:14px/1.5 Arial,sans-serif;padding:24px;max-width:640px"><h2 style="margin:0">Sapphire Scents</h2><p>Order <b>${esc(o.id)}</b> · ${oDate(o).toLocaleDateString('en-GB')}</p><h3>Deliver to</h3><p><b>${esc(c.name||'')}</b><br>${esc(c.phone||'')}<br>${esc(oPlace(c))}</p><h3>Items</h3><ul>${(o.items||[]).map(i=>`<li>${esc(i.name)}${i.opt?' ('+esc(i.opt)+')':''} × ${+i.qty||1}</li>`).join('')}</ul>${c.notes?`<p>Note: ${esc(c.notes)}</p>`:''}<script>print()<\/script></body>`);w.document.close()};
+}
+
 /* ---------------- team ---------------- */
 async function teamView(){
   const v=$('#view');const owner=ME.role==='owner';
@@ -492,7 +617,7 @@ async function start(){
     if(!me||!me.length){const e=email;await signOut();return loginView('in',`${e} isn’t on the Sapphire staff list yet. Ask an owner to add you.`)}
     ME=me[0];
     await loadProducts();
-    const want=location.hash.slice(1);if(['products','bulk','history','team'].includes(want))VIEW=want;
+    const want=location.hash.slice(1);if(['overview','orders','products','bulk','history','team'].includes(want))VIEW=want;
     shell();
   }catch(e){if(!S)return;$('#app').innerHTML=`<div class="boot">${esc(e.message)} <button class="btn small" onclick="location.reload()">Try again</button></div>`}
 }

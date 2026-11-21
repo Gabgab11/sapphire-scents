@@ -168,3 +168,38 @@ table.t th{background:#f6f2ea;font-size:11px;letter-spacing:.1em;text-transform:
   .tabs button{padding:12px 10px 10px}
   .who span{display:none}
 }
+
+/* overview */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stat{display:grid;gap:4px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;cursor:pointer;font:inherit;color:var(--ink);min-width:0}
+.stat:hover{border-color:var(--ink)}
+.stat small{font-size:12px;color:var(--mid);letter-spacing:.04em}
+.stat b{font-family:var(--display);font-weight:500;font-size:30px;line-height:1.1;overflow-wrap:anywhere}
+.stat span{font-size:12px;color:var(--mid)}
+.stat.hot{border-color:var(--amber);background:#fff7ea}
+.note{background:#fff7ea;border:1px solid #f3d9a8;border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:14px}
+.best{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.best li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding-bottom:8px}
+
+/* orders */
+.olist{display:grid;gap:8px}
+.orow{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,2fr) auto auto;gap:14px;align-items:center;text-align:left;width:100%;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;font:inherit;color:var(--ink)}
+.orow:hover{border-color:var(--ink)}
+.orow small{display:block;color:var(--mid);font-size:12px}
+.orow .o2{font-size:13px;color:var(--mid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.orow .o3{display:grid;justify-items:end;gap:4px}
+.card .orow{grid-template-columns:minmax(0,1fr) auto auto}.card .orow .o2{display:none}
+@media (max-width:700px){.orow{grid-template-columns:minmax(0,1fr) auto}.orow .o2{grid-column:1/-1;order:3;white-space:normal}.orow .o4{grid-column:1/-1;order:4}}
+.ost{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap;background:#eef0f6;color:var(--ink)}
+.ost.new{background:#fff0d6;color:#8a5200}
+.ost.awaiting_payment{background:#f1ece2;color:#6b5a3a}
+.ost.paid{background:#dff3e6;color:#17603a}
+.ost.confirmed{background:#e3ecfb;color:#1f4a8a}
+.ost.dispatched{background:#ece7f6;color:#4b3a8a}
+.ost.delivered{background:#e5efe9;color:#2c4a3a}
+.ost.cancelled{background:#f3e3e1;color:#8a2c22;text-decoration:line-through}
+.chip .n{display:inline-block;min-width:20px;padding:0 6px;margin-left:4px;border-radius:999px;background:rgba(7,12,41,.08);font-size:11px}
+.chip[aria-pressed="true"] .n{background:rgba(255,255,255,.2)}
+.steps-o{display:flex;flex-wrap:wrap;gap:8px}
+.btn.wa{background:#25D366;border-color:#25D366;color:#06210f}

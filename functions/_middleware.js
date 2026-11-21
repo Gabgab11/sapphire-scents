@@ -4,7 +4,7 @@
 // 2. Slows down anyone hammering the order, contact or payment endpoints.
 const HIDDEN = /^\/(supabase|functions|api\/_|node_modules)(\/|$)|^\/(README|readme)(\.md)?$|^\/vercel\.json$|^\/package(-lock)?\.json$|^\/api\/[^/]+\.js$|^\/\.(?!well-known\/)|\.(sql|md|map|bak|env|log)$/i;
 
-const LIMITS = { '/api/send': 6, '/api/pay/init': 10, '/api/pay/verify': 30 }; // per IP per 10 minutes
+const LIMITS = { '/api/send': 6, '/api/order/whatsapp': 8, '/api/pay/init': 10, '/api/pay/verify': 30 }; // per IP per 10 minutes
 
 async function tooMany(request, path) {
   const max = (request.method === 'POST' || path === '/api/pay/verify') ? LIMITS[path] : 0;

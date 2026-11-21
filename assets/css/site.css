@@ -702,3 +702,8 @@ body.lit-text .hprice{animation:rise 1s .38s both}
 .logo .wm{display:block;height:40px;width:auto}
 .logo .wm-foot{height:52px}
 @media (max-width:480px){.logo .wm{height:30px}.logo .wm-foot{height:40px}}
+
+.btn.wa{display:inline-flex;align-items:center;gap:8px;border-color:#25D366;color:#EFE7DA}
+.btn.wa svg{color:#25D366}
+.btn.solid.wa{background:#25D366;color:#06210f;border-color:#25D366}.btn.solid.wa svg{color:#06210f}
+.paybtns .btn{border-radius:999px}
