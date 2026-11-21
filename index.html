@@ -43,38 +43,42 @@
 </script>
 <header id="site-header" class="site"></header>
 <main id="top">
-<section class="hero" id="hero" aria-label="Featured scent">
+<section class="hero ehero" id="hero" aria-label="Scent your event">
   <div class="scene-wrap">
     <div class="scene">
       <img class="hbg" fetchpriority="high" decoding="async" src="images/flower.webp" alt="Deep blue flower petals in low light">
       <div class="lights"><div class="glow"></div><div class="warm"></div></div>
-      <div class="bottle" id="hBottle">
+      <div class="bottle diffuser" id="hDiff">
         <div class="bottle-in">
-          <img src="images/hero-bottle.webp" alt="" id="hBottleImg">
-          <div class="blabel" aria-hidden="true"><small>Sapphire Scents</small><b id="hLabel">ASIKO</b><span class="rule"></span><small class="sub" id="hLabelSub">Made in Nigeria</small></div>
+          <div class="mist" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><span class="jet"></span></div>
+          <img id="hDiffImg" alt="Sapphire i-3 scent diffuser" width="560" height="698" decoding="async">
+          <script>(function(){var D=[["i-3","images/hero/diffuser-i3.webp",560,698],["i-1","images/hero/diffuser-i1.webp",415,514],["i-5","images/hero/diffuser-i5.webp",423,562]],k=0;try{var v=localStorage.getItem("ss_hero_diff");if(v!==null&&!isNaN(+v))k=(+v+1)%D.length;localStorage.setItem("ss_hero_diff",String(k))}catch(e){}var d=D[k],im=document.getElementById("hDiffImg");im.src=d[1];im.width=d[2];im.height=d[3];im.alt="Sapphire "+d[0]+" scent diffuser";window.SS_DIFF=d[0];document.getElementById("hDiff").setAttribute("data-model",d[0])})();</script>
+          <noscript><img src="images/hero/diffuser-i3.webp" alt="Sapphire i-3 scent diffuser" width="560" height="698"></noscript>
         </div>
       </div>
       <div class="front"><img src="images/flower.webp" alt=""></div>
     </div>
     <div class="shade"></div>
+    <a class="dtag" id="hTag" href="product.html?id=i-3"><small id="hTagName">i-3 Diffuser</small><b id="hTagSpec">Covers up to 800 m³</b></a>
   </div>
   <div class="hcopy wrap">
     <div class="hcopy-in">
-      <div class="heyebrow" id="hEyebrow">New for 2026</div>
-      <h1 class="htitle" id="hTitle"><span class="a" id="hName">Asiko</span><span class="b" id="hPair">Oud &amp; Amber</span></h1>
-      <p class="hlede" id="hStory"></p>
+      <div class="heyebrow"><svg width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 L14.5 9.5 L22 12 L14.5 14.5 L12 22 L9.5 14.5 L2 12 L9.5 9.5 Z" fill="currentColor"/></svg>Event scenting by Sapphire</div>
+      <h1 class="htitle"><span class="b">Scent your</span><span class="a">event</span></h1>
+      <div class="hprice"><span>for</span><b>₦1.2M</b></div>
+      <p class="hlede">Weddings, launches and parties, filled with a Sapphire signature scent from the moment your guests walk in.</p>
       <div class="hctas">
-        <button class="pill" id="hAdd" data-add="asiko">Add to bag <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
-        <a class="tlink" id="hView" href="product.html?id=asiko">View details</a>
-        <button class="tlink" id="hNext">Next scent →</button>
+        <a class="pill" href="contact.html?topic=events#events">Book your date <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a>
+        <a class="tlink" href="diffusers.html">See the diffusers</a>
+        <a class="tlink" href="perfumes.html">Shop perfumes →</a>
       </div>
     </div>
   </div>
   <div class="hfacts"><div class="wrap"><dl>
-    <div><dt>Price</dt><dd id="hPrice">₦100,000</dd></div>
-    <div><dt>Notes</dt><dd id="hNotes">Oud, amber, leather, tonka</dd></div>
-    <div><dt>Origin</dt><dd>Made in Nigeria</dd></div>
-    <div class="hint" id="hHint">Scent 1 of 7 · a new one on every visit</div>
+    <div><dt>Price</dt><dd>₦1.2M per event</dd></div>
+    <div><dt>For</dt><dd>Weddings · Launches · Parties</dd></div>
+    <div><dt>Origin</dt><dd>Made in Nigeria since 2015</dd></div>
+    <div class="hint" id="hHint">A different diffuser on every visit</div>
   </dl></div></div>
 </section>
 <div class="ticker" aria-hidden="true"><div class="ticker-track" id="ticker"></div></div>
@@ -165,36 +169,18 @@
 <script src="/api/catalog"></script>
 <script src="assets/js/site.js"></script>
 <script>
-/* ================= HERO: lights-on opening, a new scent on each visit ================= */
+/* ================= HERO: lights-on opening, a different diffuser on each visit ================= */
 (function(){
- const B=document.body,hdr=document.querySelector('header.site');
- const HERO=['asiko','sapphire-no-48','oud-magnifique','grandeur','chocolate','kadara','siren','lust','cherub','jagaban'].filter(id=>byId[id]&&byId[id].type==='perfume').concat(PERFUMES.map(p=>p.id)).filter((id,i,a)=>a.indexOf(id)===i).slice(0,10).map(id=>({id,pair:byId[id].pair,eyebrow:byId[id].tags.includes('new')?'New release':byId[id].tags.includes('best')?'Best seller':byId[id].family}));
- let idx=Math.floor(Math.random()*HERO.length);
- try{const v=localStorage.getItem('ss_hero');if(v!==null&&!isNaN(+v))idx=(+v+1)%HERO.length}catch(e){}
- function apply(){
-  const h=HERO[idx],p=byId[h.id];
-  try{localStorage.setItem('ss_hero',String(idx))}catch(e){}
-  $('#hEyebrow').textContent=h.eyebrow;$('#hName').textContent=p.name;$('#hPair').textContent=h.pair;
-  $('#hTitle').classList.toggle('long',p.name.length>8);$('#hTitle').classList.toggle('pairlong',h.pair.length>14);
-  $('#hStory').textContent=p.story;
-  $('#hLabel').textContent=p.name.toUpperCase();$('#hLabel').style.setProperty('--lf',Math.min(1,7/p.name.length).toFixed(2));
-  $('#hLabelSub').textContent='Made in Nigeria';$('#hBottleImg').alt=`${p.name} bottle`;
-  $('#hPrice').textContent=naira(p.price);
-  $('#hNotes').textContent=p.notes.join(', ');
-  $('#hAdd').dataset.add=p.id;$('#hView').href=productUrl(p);
-  $('#hHint').textContent=`A new scent on every visit`;
- }
- const STEPS=['lit-bottle','lit-glow','lit-bg','lit-text'];let T=[];
- function lightsOn(){T.forEach(clearTimeout);T=[];
+ const B=document.body;
+ const SPECS={'i-3':'Covers up to 800 m³','i-1':'Covers 33–100 m³','i-5':'500 ml · No water'};
+ const id=window.SS_DIFF||'i-3',d=byId[id];
+ $('#hTagName').textContent=(d?d.name:id+' Diffuser');$('#hTagSpec').textContent=SPECS[id]||'';
+ if(d)$('#hTag').href=productUrl(d);else $('#hTag').hidden=true;
+ $('#hHint').textContent=`${d?d.name:id} on show · a different diffuser every visit`;
+ const STEPS=['lit-bottle','lit-glow','lit-bg','lit-text'];
+ function lightsOn(){
   if(RM){B.classList.add(...STEPS);return}
-  [['lit-bottle',600],['lit-glow',1200],['lit-bg',1800],['lit-text',3100]].forEach(([c,ms])=>T.push(setTimeout(()=>B.classList.add(c),ms)))}
- function lightsOff(){T.forEach(clearTimeout);T=[];B.classList.remove(...STEPS);void B.offsetWidth}
- function replay(){lightsOff();lightsOn()}
- $('#hNext').addEventListener('click',()=>{
-  if(RM){idx=(idx+1)%HERO.length;apply();return}
-  B.classList.remove('lit-bottle','lit-glow');
-  setTimeout(()=>{idx=(idx+1)%HERO.length;apply();B.classList.add('lit-bottle');setTimeout(()=>B.classList.add('lit-glow'),500)},700)});
- apply();
+  [['lit-bottle',600],['lit-glow',1200],['lit-bg',1800],['lit-text',3100]].forEach(([c,ms])=>setTimeout(()=>B.classList.add(c),ms))}
  const im=$('.hbg');Promise.all([im.complete?Promise.resolve():new Promise(r=>{im.onload=r;im.onerror=r}),window.SS_INTRO||Promise.resolve()]).then(lightsOn);
 })();
 /* ================= THE LINEUP: runway depth line driven by page scroll ================= */

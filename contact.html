@@ -24,7 +24,7 @@
     <form class="form" id="cform" novalidate>
       <div class="row2"><div class="field"><label for="cn">Your name</label><input id="cn" name="name" required autocomplete="name" placeholder=" "></div>
       <div class="field"><label for="ce">Your email</label><input id="ce" name="email" type="email" required autocomplete="email" placeholder=" "></div></div>
-      <div class="field"><label for="cs">Subject</label><select id="cs" name="subject"><option>A question about a perfume</option><option>An order</option><option>Diffusers for my home or business</option><option>Becoming a distributor</option><option>Something else</option></select></div>
+      <div class="field"><label for="cs">Subject</label><select id="cs" name="subject"><option>Event scenting (₦1.2M package)</option><option>A question about a perfume</option><option>An order</option><option>Diffusers for my home or business</option><option>Becoming a distributor</option><option>Something else</option></select></div>
       <div class="field"><label for="cm">Your message</label><textarea id="cm" name="message" required placeholder=" "></textarea></div>
       <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
       <p class="form-err" id="cerr" role="alert" hidden style="color:#ff8a7a;margin:0"></p>
@@ -46,7 +46,7 @@
 <script src="assets/js/site.js"></script>
 <script>
 
-const dist=()=>{if(location.hash==='#distributors'){$('#cs').value='Becoming a distributor';$('#distributors').scrollIntoView({block:'center'})}};dist();addEventListener('hashchange',dist);
+const dist=()=>{if(location.hash==='#distributors'){$('#cs').value='Becoming a distributor';$('#distributors').scrollIntoView({block:'center'})}else if(location.hash==='#events'||new URLSearchParams(location.search).get('topic')==='events'){$('#cs').value='Event scenting (₦1.2M package)';const f=$('#cform');f&&f.scrollIntoView({block:'start'});const m=$('#cm');if(m&&!m.value)m.placeholder='Tell us the date, the venue and roughly how many guests.'}};dist();addEventListener('hashchange',dist);
 $('#cform').addEventListener('submit',async e=>{e.preventDefault();const f=e.target;const err=$('#cerr');const btn=f.querySelector('[type=submit]');
  if(btn.getAttribute('aria-busy')==='true')return;
  if(!f.checkValidity()){err.hidden=false;err.textContent='Please add your name, a valid email and a message.';f.querySelector(':invalid').focus();return}
