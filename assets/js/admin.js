@@ -82,7 +82,7 @@ let tT;function toast(m,bad){const t=$('#toast');t.textContent=m;t.classList.tog
 function loginView(mode='in',msg=''){
   const recovering=mode==='newpw';
   $('#app').innerHTML=`<main class="login"><form class="lcard" id="lform" novalidate>
-    <h1>Sapphire <em>Scents</em><br>dashboard</h1>
+    <h1><img src="images/brand/wordmark.svg" alt="Sapphire Scents" style="height:52px;width:auto;display:block;margin-bottom:8px">dashboard</h1>
     <p>${recovering?'Choose a new password for your account.':mode==='reset'?'Enter your email and we’ll send a link to set a new password.':'Sign in with your staff email to manage products and photos.'}</p>
     ${recovering?'':`<label class="f">Email<input class="in" id="lemail" type="email" autocomplete="username" required></label>`}
     ${mode==='reset'?'':`<label class="f">${recovering?'New password':'Password'}<input class="in" id="lpw" type="password" autocomplete="${recovering?'new-password':'current-password'}" minlength="${recovering?8:1}" required></label>`}
@@ -109,7 +109,7 @@ async function signOut(){try{if(S)await authCall('logout',null,'POST',S.access_t
 function shell(){
   const tabs=[['products','Products'],['bulk','Bulk upload'],['history','History'],['team','Team']];
   $('#app').innerHTML=`<header class="top"><div class="top-in">
-    <a class="brand" href="index.html" target="_blank" rel="noopener">Sapphire <em>Scents</em><small>Dashboard</small></a>
+    <a class="brand" href="index.html" target="_blank" rel="noopener"><img src="images/brand/wordmark.svg" alt="Sapphire Scents" style="height:26px;width:auto;vertical-align:middle"><small>Dashboard</small></a>
     <nav class="tabs" role="tablist" aria-label="Dashboard sections">${tabs.map(([k,l])=>`<button role="tab" data-tab="${k}" aria-selected="${VIEW===k}">${l}</button>`).join('')}</nav>
     <div class="who"><span>${esc(ME.name||ME.email)}${ME.role==='owner'?' · Owner':''}</span><button class="btn small" id="out">Sign out</button></div>
   </div></header><main class="main" id="view"></main>

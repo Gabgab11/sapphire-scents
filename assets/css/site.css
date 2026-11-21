@@ -698,3 +698,7 @@ body.lit-text .hprice{animation:rise 1s .38s both}
 .paybtns .btn{min-height:48px}
 @media(max-width:560px){.paybtns .btn{flex:1 1 100%;justify-content:center}}
 .steps[hidden],.paybtns [hidden],.dnote[hidden]{display:none!important}
+
+.logo .wm{display:block;height:40px;width:auto}
+.logo .wm-foot{height:52px}
+@media (max-width:480px){.logo .wm{height:30px}.logo .wm-foot{height:40px}}

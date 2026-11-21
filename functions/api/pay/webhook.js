@@ -2,7 +2,7 @@
 // API Keys & Webhooks). The signature is checked with the secret key, then the team and the customer
 // are emailed. Paystack also emails the business owner for every successful payment.
 import { json, naira } from '../../_lib/shop.js';
-import { orderLines, whoText, sendMail, canMail, teamEmail } from '../../_lib/order.js';
+import { orderLines, whoText, sendMail, canMail, teamEmail, place } from '../../_lib/order.js';
 import { payReady } from '../../_lib/paystack.js';
 import { firstName } from '../../_lib/order.js';
 
@@ -33,7 +33,7 @@ export async function onRequestPost({ request, env }) {
     await sendMail(env, { to: TO, replyTo: cu.email, subject: `PAID order ${m.order} – ${cu.name} – ${amount}`, text: `Paid website order ${m.order}\nPaid ${amount} by ${d.channel || 'Paystack'} (Paystack ref ${d.reference})\n\n${lines}\n\nDelivery cost to be agreed with the customer.\n\n${whoText(cu)}` });
   } catch (e) { console.error('team mail', e.message); return json(500, { ok: false }); } // Paystack retries
   try {
-    if (cu.email) await sendMail(env, { to: cu.email, replyTo: TO, subject: `Payment received: Sapphire Scents order ${m.order}`, text: `Hello ${firstName(cu.name)},\n\nWe have received your payment of ${amount}. Thank you.\n\nOrder ${m.order}\n${lines}\n\nThe Sapphire team will contact you on ${cu.phone} to arrange delivery.\n\nDeliver to: ${cu.address}, ${cu.city}, ${cu.state}\n\nSapphire Scents\n${TO}` });
+    if (cu.email) await sendMail(env, { to: cu.email, replyTo: TO, subject: `Payment received: Sapphire Scents order ${m.order}`, text: `Hello ${firstName(cu.name)},\n\nWe have received your payment of ${amount}. Thank you.\n\nOrder ${m.order}\n${lines}\n\nThe Sapphire team will contact you on ${cu.phone} to arrange delivery.\n\nDeliver to: ${place(cu)}\n\nSapphire Scents\n${TO}` });
   } catch (e) { console.error('customer mail', e.message); }
   return json(200, { ok: true });
 }

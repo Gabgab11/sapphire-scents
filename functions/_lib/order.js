@@ -8,8 +8,10 @@ export const teamEmail = env => env.MAIL_TO || 'info@shopsapphirescents.com';
 
 export async function buildOrder(env, b) {
   const c = b.customer || {};
-  const cu = { name: clean(c.name, 120), phone: clean(c.phone, 40), email: clean(c.email, 160), address: clean(c.address, 300), city: clean(c.city, 120), state: clean(c.state, 120), notes: clean(c.notes, 1500) };
-  if (!cu.name || !cu.phone || !okEmail(cu.email) || !cu.address || !cu.city || !cu.state) return { error: [400, 'Please fill in your name, phone, email and delivery address.'] };
+  const cu = { name: clean(c.name, 120), phone: clean(c.phone, 40), email: clean(c.email, 160), address: clean(c.address, 300), city: clean(c.city, 120), state: clean(c.state, 120), country: clean(c.country, 60) || 'Nigeria', notes: clean(c.notes, 1500) };
+  if (!COUNTRIES.includes(cu.country)) return { error: [400, 'Please choose a delivery country from the list.'] };
+  if (cu.country !== 'Nigeria') cu.state = '';
+  if (!cu.name || !cu.phone || !okEmail(cu.email) || !cu.address || !cu.city || (cu.country === 'Nigeria' && !cu.state)) return { error: [400, 'Please fill in your name, phone, email and delivery address.'] };
   const rows = await liveProducts(env).catch(() => null);
   if (!rows || !rows.length) return { error: [503, 'The shop is busy. Please try again in a moment.'] };
   const byId = Object.fromEntries(rows.map(r => [r.id, r]));
@@ -24,7 +26,9 @@ export async function buildOrder(env, b) {
 }
 
 export const orderLines = items => items.map(l => `• ${l.name} (${l.kind}${l.opt ? ', ' + l.opt : ''}) × ${l.qty}: ${naira(l.amount)}`).join('\n');
-export const whoText = cu => `Name: ${cu.name}\nPhone: ${cu.phone}\nEmail: ${cu.email}\nAddress: ${cu.address}, ${cu.city}, ${cu.state}${cu.notes ? '\nNotes: ' + cu.notes : ''}`;
+export const COUNTRIES = ['Nigeria', 'Ghana', 'Benin', 'South Africa', 'Kenya', 'Egypt', 'United Kingdom', 'Ireland', 'United States', 'Canada', 'Portugal', 'Spain', 'France', 'Germany', 'Italy', 'Netherlands', 'Belgium', 'United Arab Emirates', 'Saudi Arabia', 'Qatar']; // keep in sync with assets/js/places.js
+export const place = cu => [cu.address, cu.city, cu.state, cu.country].filter(Boolean).join(', ');
+export const whoText = cu => `Name: ${cu.name}\nPhone: ${cu.phone}\nEmail: ${cu.email}\nAddress: ${place(cu)}${cu.notes ? '\nNotes: ' + cu.notes : ''}`;
 
 export async function sendMail(env, { to, subject, text, replyTo }) {
   const r = await fetch('https://api.resend.com/emails', {

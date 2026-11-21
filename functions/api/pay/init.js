@@ -1,7 +1,7 @@
 // POST /api/pay/init: checks the order against live prices, opens a Paystack payment and
 // returns the page the customer pays on. GET tells the checkout whether paying online is switched on.
 import { json } from '../../_lib/shop.js';
-import { clean, buildOrder } from '../../_lib/order.js';
+import { clean, buildOrder, place } from '../../_lib/order.js';
 import { payReady, payMode, paystack, newRef } from '../../_lib/paystack.js';
 
 export const onRequestGet = ({ env }) => json(200, { enabled: payReady(env), mode: payReady(env) ? payMode(env) : null });
@@ -30,7 +30,7 @@ export async function onRequestPost({ request, env }) {
           cancel_action: `${origin}/checkout`,
           custom_fields: [
             { display_name: 'Customer', variable_name: 'customer', value: `${cu.name} · ${cu.phone}` },
-            { display_name: 'Deliver to', variable_name: 'deliver_to', value: `${cu.address}, ${cu.city}, ${cu.state}` },
+            { display_name: 'Deliver to', variable_name: 'deliver_to', value: `${place(cu)}` },
             { display_name: 'Items', variable_name: 'items', value: items.map(i => `${i.name}${i.opt ? ' (' + i.opt + ')' : ''} × ${i.qty}`).join(', ').slice(0, 900) }
           ]
         }

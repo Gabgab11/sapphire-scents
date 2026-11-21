@@ -3,7 +3,7 @@
 //   RESEND_API_KEY (secret), MAIL_FROM ("Sapphire Scents <orders@shopsapphirescents.com>"), MAIL_TO (optional)
 // Until they're set it answers 503 and the site falls back to the customer's email app.
 import { naira, json } from '../_lib/shop.js';
-import { clean, okEmail, buildOrder, whoText, sendMail as send, teamEmail, firstName } from '../_lib/order.js';
+import { clean, okEmail, buildOrder, whoText, sendMail as send, teamEmail, firstName, place } from '../_lib/order.js';
 
 export async function onRequestPost({ request, env }) {
   if (!env.RESEND_API_KEY || !env.MAIL_FROM) return json(503, { ok: false, error: 'Email sending is not set up yet' });
@@ -21,7 +21,7 @@ export async function onRequestPost({ request, env }) {
       const who = whoText(cu);
       await send(env, { to: TO, replyTo: cu.email, subject: `New order ${ref} – ${cu.name} – ${naira(total)}`, text: `New website order ${ref}\n\n${lines}\n\nSubtotal: ${naira(total)} (delivery to be confirmed)\n\n${who}` });
       try {
-        await send(env, { to: cu.email, replyTo: TO, subject: `Your Sapphire Scents order ${ref}`, text: `Hello ${firstName(cu.name)},\n\nThank you for your order. The Sapphire team will contact you to confirm availability, delivery cost and payment details.\n\nOrder ${ref}\n${lines}\n\nSubtotal: ${naira(total)} (delivery to be confirmed)\n\nDeliver to: ${cu.address}, ${cu.city}, ${cu.state}\n\nSapphire Scents\n${TO}` });
+        await send(env, { to: cu.email, replyTo: TO, subject: `Your Sapphire Scents order ${ref}`, text: `Hello ${firstName(cu.name)},\n\nThank you for your order. The Sapphire team will contact you to confirm availability, delivery cost and payment details.\n\nOrder ${ref}\n${lines}\n\nSubtotal: ${naira(total)} (delivery to be confirmed)\n\nDeliver to: ${place(cu)}\n\nSapphire Scents\n${TO}` });
       } catch (e) { console.error('customer copy failed', e.message); }
       return json(200, { ok: true, ref, total });
     }

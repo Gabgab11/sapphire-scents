@@ -12,7 +12,7 @@
 <meta property="og:image" content="/images/crown-jagaban.webp">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070C29'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='Georgia,serif' font-style='italic' font-size='36' fill='%23FF9E0D'%3ES%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500&display=swap">
-<link rel="stylesheet" href="assets/css/site.css?v=202611212200">
+<link rel="stylesheet" href="assets/css/site.css?v=202611220020">
 <script>document.documentElement.classList.add("js")</script>
 </head>
 <body>
@@ -27,9 +27,11 @@
       <div class="field"><label for="op">Phone (WhatsApp if possible)</label><input id="op" name="phone" type="tel" required autocomplete="tel" placeholder=" "></div></div>
       <div class="field"><label for="oe">Email</label><input id="oe" name="email" type="email" required autocomplete="email" placeholder=" "></div>
       <div class="eyebrow" style="margin-top:12px">Delivery</div>
-      <div class="field"><label for="oa">Delivery address</label><input id="oa" name="address" required autocomplete="street-address" placeholder=" "></div>
-      <div class="row2"><div class="field"><label for="oc">City</label><input id="oc" name="city" required autocomplete="address-level2" placeholder=" "></div>
-      <div class="field"><label for="os">State / Country</label><input id="os" name="state" required autocomplete="address-level1" placeholder=" "></div></div>
+      <div class="row2"><div class="field"><label for="ocountry">Country</label><select id="ocountry" name="country" required autocomplete="country-name"></select></div>
+      <div class="field" id="ostateW"><label for="os">State</label><select id="os" name="state" autocomplete="address-level1"></select></div></div>
+      <div class="row2"><div class="field"><label for="ocity">City or area</label><select id="ocity" name="citypick" required></select></div>
+      <div class="field" id="ocW" hidden><label for="oc">Type your city</label><input id="oc" name="city" autocomplete="address-level2" placeholder=" " maxlength="120"></div></div>
+      <div class="field"><label for="oa">Street address</label><input id="oa" name="address" required autocomplete="street-address" placeholder=" " maxlength="300"></div>
       <div class="field"><label for="ox">Order notes (optional)</label><textarea id="ox" name="notes" placeholder=" " style="min-height:90px"></textarea></div>
       <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
       <p id="oerr" role="alert" hidden style="color:#ff8a7a;margin:0"></p>
@@ -45,9 +47,11 @@
 </div></section>
 </main>
 <footer id="site-footer"></footer>
-<script src="assets/js/catalog.js?v=202611212200"></script>
+<script src="assets/js/catalog.js?v=202611220020"></script>
 <script src="/api/catalog"></script>
-<script src="assets/js/site.js?v=202611212200"></script>
+<script src="assets/js/site.js?v=202611220020"></script>
+<script src="assets/js/places.js?v=202611220020"></script>
+<script>ssPlacesInit()</script>
 <script>
 
 function sum(){
@@ -56,7 +60,7 @@ function sum(){
 }
 sum();addEventListener('storage',sum);
 let PAY=false;
-fetch('/api/pay/init',{cache:'no-store'}).then(r=>r.ok?r.json():{}).then(j=>{if(!j.enabled)return;PAY=true;$('#payBtn').hidden=false;$('#payNote').hidden=false;$('#laterBtn').classList.remove('solid');$('#stepsLater').hidden=true;$('#stepsPay').hidden=false;sum()}).catch(()=>{});
+fetch('/api/pay/init',{cache:'no-store'}).then(r=>r.ok?r.json():{}).then(j=>{if(!j.enabled)return;PAY=true;$('#payBtn').hidden=false;$('#payNote').hidden=false;$('#laterBtn').hidden=true;$('#stepsLater').hidden=true;$('#stepsPay').hidden=false;sum()}).catch(()=>{});
 (async()=>{const q=new URLSearchParams(location.search),ref=q.get('reference')||q.get('trxref');if(!ref)return;
  $('#coForm').innerHTML='<div class="done"><div class="eyebrow">Checking your payment…</div><p style="color:var(--mid)">One moment while we confirm your payment with Paystack.</p></div>';
  let j=null;for(let i=0;i<3&&!(j&&j.ok);i++){try{const r=await fetch('/api/pay/verify?reference='+encodeURIComponent(ref),{cache:'no-store'});j=await r.json()}catch(e){}if(!(j&&j.ok))await new Promise(r=>setTimeout(r,1500))}
@@ -74,14 +78,14 @@ $('#oform')&&$('#oform').addEventListener('submit',async e=>{e.preventDefault();
  if(!f.checkValidity()){err.hidden=false;err.textContent='Please fill in your name, phone, email and delivery address.';f.querySelector(':invalid').focus();return}
  err.hidden=true;
  const v=k=>f.elements[k].value.trim();
- const cu={name:v('name'),phone:v('phone'),email:v('email'),address:v('address'),city:v('city'),state:v('state'),notes:v('notes')};
+ const cu={name:v('name'),phone:v('phone'),email:v('email'),address:v('address'),city:ssCityValue(),state:$('#ostateW').hidden?'':v('state'),country:v('country'),notes:v('notes')};
  if(PAY&&e.submitter&&e.submitter.dataset.mode==='pay'){const pb=e.submitter;pb.setAttribute('aria-busy','true');pb.textContent='Opening Paystack…';
   let j=null;try{const r=await fetch('/api/pay/init',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({customer:cu,items:BAG.map(({id,qty,opt})=>({id,qty,opt})),website:f.elements.website.value})});j=await r.json()}catch(x){}
   if(j&&j.ok&&j.url){location.href=j.url;return}
   pb.removeAttribute('aria-busy');pb.innerHTML='Pay now <span id="payAmt"></span>';sum();err.hidden=false;err.textContent=(j&&j.error)||'Payment could not start. Check your connection and try again, or place the order and pay later.';return}
  const ref='SS-'+Date.now().toString(36).toUpperCase().slice(-6);
  const lines=BAG.map(l=>{const p=byId[l.id];return `• ${p.name} (${p.kind}${l.opt?', '+l.opt:''}) × ${l.qty}: ${naira(p.price*l.qty)}`}).join('\n');
- const text=`New order ${ref}\n\n${lines}\n\nSubtotal: ${naira(bagTotal())}\n\nName: ${cu.name}\nPhone: ${cu.phone}\nEmail: ${cu.email}\nAddress: ${cu.address}, ${cu.city}, ${cu.state}${cu.notes?'\nNotes: '+cu.notes:''}`;
+ const text=`New order ${ref}\n\n${lines}\n\nSubtotal: ${naira(bagTotal())}\n\nName: ${cu.name}\nPhone: ${cu.phone}\nEmail: ${cu.email}\nAddress: ${[cu.address,cu.city,cu.state,cu.country].filter(Boolean).join(', ')}${cu.notes?'\nNotes: '+cu.notes:''}`;
  btn.setAttribute('aria-busy','true');btn.textContent='Placing order…';
  const sent=await post({type:'order',ref,customer:cu,items:BAG.map(({id,qty,opt})=>({id,qty,opt})),website:f.elements.website.value});
  const first=esc(cu.name.split(' ')[0]);

@@ -12,7 +12,7 @@ function renderChrome(){
   const hd=$('#site-header');
   hd.className='site';
   hd.innerHTML=`<div class="wrap nav">
-    <a class="logo" href="index.html" aria-label="Sapphire Scents home">Sapphire <em>Scents</em></a>
+    <a class="logo" href="index.html" aria-label="Sapphire Scents home"><img class="wm" src="images/brand/wordmark.svg" alt="Sapphire Scents" width="442" height="80"></a>
     <ul class="nav-links">${links}</ul>
     <div class="nav-tools">
       <form class="search" action="search.html" role="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="q" name="q" type="search" placeholder="Search scents" aria-label="Search perfumes, refills and diffusers"></form>
@@ -25,7 +25,7 @@ function renderChrome(){
   const year=new Date().getFullYear();
   $('#site-footer').innerHTML=`<div class="wrap">
     <div class="foot">
-      <div><a class="logo" href="index.html">Sapphire <em>Scents</em></a><p style="margin-top:16px;max-width:34ch">Affordable luxury perfumes for Africans all over the world. Made in Nigeria since 2015.</p>
+      <div><a class="logo" href="index.html" aria-label="Sapphire Scents home"><img class="wm wm-foot" src="images/brand/wordmark.svg" alt="Sapphire Scents" width="442" height="80" loading="lazy"></a><p style="margin-top:16px;max-width:34ch">Affordable luxury perfumes for Africans all over the world. Made in Nigeria since 2015.</p>
         <div class="socials"><a href="${CONTACT.instagram}" target="_blank" rel="noopener">Instagram</a><a href="${CONTACT.facebook}" target="_blank" rel="noopener">Facebook</a></div></div>
       <div><h4>Shop</h4><ul><li><a href="perfumes.html">Perfumes</a></li><li><a href="perfumes.html?c=best">Best sellers</a></li><li><a href="diffusers.html">Diffusers</a></li><li><a href="refills.html">Scent refills</a></li></ul></div>
       <div><h4>House</h4><ul><li><a href="about.html">Our story</a></li><li><a href="contact.html#distributors">Become a distributor</a></li><li><a href="contact.html">Contact</a></li></ul></div>
