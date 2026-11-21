@@ -110,7 +110,7 @@ const PERFUMES=[
   story:'Kadara is the Yoruba word for destiny. You don’t decide your destiny, you discover it. For men and women convinced they are on earth for a divine purpose.'},
  {id:'lust',name:'Lust',price:100000,notes:['Oud','Amber','Musk','Patchouli','Vanilla'],family:'Sensual amber',tags:['sweet'],a:'#0f4a4e',pair:'Amber & Musk',
   story:'The house’s most sensual fragrance, recommended for honeymoon nights and any evening you want to give your partner a special treat.'},
- {id:'oud-magnifique',name:'Oud Magnifique',price:75000,notes:['Oud','Musk','Rose'],family:'Rose oud',tags:['best','floral'],a:'#2f5157',pair:'Oud & Rose',
+ {id:'oud-magnifique',name:'Magnifique Oud',price:75000,notes:['Oud','Musk','Rose'],family:'Rose oud',tags:['best','floral'],a:'#2f5157',pair:'Oud & Rose',
   story:'A “commercial oud”: an oud blend made to smell good to African noses while keeping its originality. One of the house’s biggest sellers.'},
  {id:'opulence',name:'Opulence',price:100000,notes:['Oud','Saffron','Patchouli','Musk','Rose'],family:'Spiced rose oud',tags:['floral','woody'],a:'#6a1a2a',pair:'Saffron & Rose',
   story:'One of the fragrances the house improved as its collection of rare oils grew. Rich saffron and rose over patchouli and musk.'},
