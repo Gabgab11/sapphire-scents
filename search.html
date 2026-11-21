@@ -25,7 +25,7 @@
 <script src="/api/catalog"></script>
 <script src="assets/js/site.js?v=202611211417"></script>
 <script>
-const raw=(new URLSearchParams(location.search).get('q')||'').trim();
+const raw=(new URLSearchParams(location.search).get('q')||'').replace(/[-_]+/g,' ').replace(/\s+/g,' ').trim();
 $('#sq').value=raw;if($('#q'))$('#q').value=raw;if($('#mq'))$('#mq').value=raw;
 const words=raw.toLowerCase().split(/\s+/).filter(Boolean);
 const hay=p=>[p.name,p.kind,p.type,p.type==='refill'?'refill refills diffuser oil scent refill':'',p.type==='diffuser'?'diffuser diffusers machine':'',p.type==='perfume'?'perfume perfumes':'',p.family,p.tagline,p.note,p.summary,p.story,(p.notes||[]).join(' '),(p.tags||[]).join(' ')].filter(Boolean).join(' ').toLowerCase();
