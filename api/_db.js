@@ -8,7 +8,7 @@ async function liveProducts() {
   const t = setTimeout(() => ctrl.abort(), 4000);
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/products?select=id,type,name,price,in_stock,sort,data&visible=eq.true&order=sort.asc`, {
-      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+      headers: { apikey: SUPABASE_KEY },
       signal: ctrl.signal
     });
     if (!r.ok) throw new Error('Supabase ' + r.status);

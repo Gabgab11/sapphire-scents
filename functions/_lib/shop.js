@@ -11,7 +11,7 @@ export async function liveProducts(env) {
   try {
     const key = supabaseKey(env);
     const r = await fetch(`${supabaseUrl(env)}/rest/v1/products?select=id,type,name,price,in_stock,sort,data&visible=eq.true&order=sort.asc`, {
-      headers: { apikey: key, Authorization: `Bearer ${key}` },
+      headers: { apikey: key },
       signal: ctrl.signal
     });
     if (!r.ok) throw new Error('Supabase ' + r.status);

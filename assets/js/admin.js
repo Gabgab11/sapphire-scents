@@ -478,7 +478,7 @@ async function start(){
   if(!CFG.supabaseKey||CFG.supabaseKey==='PENDING'){$('#app').innerHTML='<div class="boot">The dashboard is being set up. Check back shortly.</div>';return}
   // returning from a password-reset email
   const h=new URLSearchParams(location.hash.slice(1));
-  if(h.get('access_token')&&h.get('type')==='recovery'){saveSession(asSession({access_token:h.get('access_token'),refresh_token:h.get('refresh_token'),expires_in:+h.get('expires_in')||3600}));history.replaceState(null,'',location.pathname);return loginView('newpw')}
+  if(h.get('access_token')&&['recovery','invite','signup','magiclink'].includes(h.get('type'))){saveSession(asSession({access_token:h.get('access_token'),refresh_token:h.get('refresh_token'),expires_in:+h.get('expires_in')||3600}));history.replaceState(null,'',location.pathname);return loginView('newpw')}
   if(h.get('error_description')){history.replaceState(null,'',location.pathname);return loginView('in',h.get('error_description').replace(/\+/g,' '))}
   S=S||loadSession();
   if(!S)return loginView();
