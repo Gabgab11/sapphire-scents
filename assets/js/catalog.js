@@ -198,8 +198,26 @@ const CONTACT={email:'info@shopsapphirescents.com',instagram:'https://www.instag
 
 /* Live catalogue: /api/catalog calls this with the products saved in the dashboard.
    If it never runs (offline, database down), the built-in list above is used. */
+/* Everything from the database is cleaned before it reaches the page, so a mistyped or
+   tampered product can never inject code: no angle brackets or straight quotes in text,
+   pictures only from this site or the shop's own Supabase storage, colours only as hex. */
+const SS_IMG_OK=/^(\/?images\/[\w\/.-]+|https:\/\/sisketddtfuwwwtdxduy\.supabase\.co\/storage\/v1\/object\/public\/products\/[\w\/.%-]+|[a-z][\w-]{0,40})$/i;
+function SS_CLEAN(v,key,depth){
+  if(depth>4)return undefined;
+  if(typeof v==='string'){
+    if(key==='img'||key==='images')return SS_IMG_OK.test(v)?v:'';
+    if(key==='a')return /^#[0-9a-f]{3,8}$/i.test(v)?v:'';
+    return v.slice(0,4000).replace(/[<>`]/g,'').replace(/"/g,'\u201d').replace(/'/g,'\u2019');
+  }
+  if(typeof v==='number')return isFinite(v)?v:0;
+  if(typeof v==='boolean'||v==null)return v;
+  if(Array.isArray(v))return v.slice(0,60).map(x=>SS_CLEAN(x,key,depth+1)).filter(x=>x!==undefined&&x!=='');
+  if(typeof v==='object'){const o={};for(const k of Object.keys(v).slice(0,60)){if(k==='__proto__'||k==='constructor'||k==='prototype')continue;const c=SS_CLEAN(v[k],k,depth+1);if(c!==undefined)o[k]=c}return o}
+  return undefined;
+}
 function SS_APPLY(rows){
   if(!Array.isArray(rows)||!rows.length)return;
+  rows=rows.filter(r=>r&&typeof r==='object'&&/^[a-z0-9][a-z0-9-]{0,62}$/.test(String(r.id))).map(r=>({...r,name:SS_CLEAN(String(r.name||''),'name',0),data:SS_CLEAN(r.data&&typeof r.data==='object'?r.data:{},'data',0)}));
   const kinds={perfume:'Perfume',refill:'Scent refill',diffuser:'Diffuser'};
   const lists={perfume:PERFUMES,refill:REFILLS,diffuser:DIFFUSERS};
   const fresh={perfume:[],refill:[],diffuser:[]};

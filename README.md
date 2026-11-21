@@ -55,3 +55,12 @@ Checkout has a **Pay now** button that appears only once Paystack is switched on
 - Every payment also appears in the Paystack dashboard with the customer, address and items.
 - The payment covers the products. Delivery is agreed with the customer afterwards, as before.
 - "Place order, pay later" still works the old way.
+
+## Security
+
+- No secret keys live in the code. Secrets (Paystack, Resend) are set only in Cloudflare › Variables and secrets. The Supabase key in `config.json` is the publishable one and is meant to be public; the database rules decide what it can do.
+- Database: row-level security on every table. Shoppers can only read visible products. Only signed-in staff can change products; only owners can change the team; there is always at least one owner; public sign-ups are off.
+- `functions/_middleware.js` hides repository-only files (database SQL, notes, function source, old Vercel files) and throttles the order, contact and payment endpoints per visitor.
+- Product text from the database is cleaned before it is shown, so a tampered product can't inject code. Pictures load only from this site or the shop's own Supabase storage.
+- `_headers` sets a strict content security policy, HTTPS-only, no framing, and keeps the dashboard out of search engines and caches.
+- Payments: prices are always taken from the database, the "Paid" screen is confirmed with Paystack directly, and the webhook only trusts messages signed with the Paystack secret key and matching the order total.

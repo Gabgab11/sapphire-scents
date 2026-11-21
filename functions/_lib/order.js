@@ -39,3 +39,6 @@ export async function sendMail(env, { to, subject, text, replyTo }) {
   if (!r.ok) throw new Error('Resend ' + r.status + ' ' + (await r.text()).slice(0, 200));
 }
 export const canMail = env => !!(env.RESEND_API_KEY && env.MAIL_FROM);
+
+// Only letters in the greeting of emails sent to customers, so the forms can't be used to send spam links
+export const firstName = n => (String(n || '').split(/\s+/)[0] || '').replace(/[^\p{L}'-]/gu, '').slice(0, 30) || 'there';
