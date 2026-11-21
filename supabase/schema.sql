@@ -156,3 +156,20 @@ create policy "staff replace product photos" on storage.objects for update to au
 drop policy if exists "staff delete product photos" on storage.objects;
 create policy "staff delete product photos" on storage.objects for delete to authenticated
   using (bucket_id = 'products' and (select private.is_staff()));
+
+-- ---------- there must always be at least one owner ----------
+create or replace function private.keep_an_owner() returns trigger
+language plpgsql security definer set search_path = ''
+as $$
+begin
+  if old.role = 'owner' and (tg_op = 'DELETE' or new.role <> 'owner' or new.email <> old.email) then
+    if not exists (select 1 from public.staff where role = 'owner' and email <> old.email) then
+      raise exception 'There must always be at least one owner. Make someone else an owner first.';
+    end if;
+  end if;
+  return coalesce(new, old);
+end $$;
+revoke all on function private.keep_an_owner() from public, anon, authenticated;
+drop trigger if exists staff_keep_owner on public.staff;
+create trigger staff_keep_owner before update or delete on public.staff
+  for each row execute function private.keep_an_owner();
