@@ -189,7 +189,35 @@ const DIFFUSERS=[
 DIFFUSERS.forEach(d=>{d.type='diffuser';d.kind='Diffuser'});
 
 const ALL=[...PERFUMES,...REFILLS,...DIFFUSERS];
+ALL.forEach(p=>{if(p.inStock===undefined)p.inStock=true});
 const byId=Object.fromEntries(ALL.map(p=>[p.id,p]));
+const imgOf=p=>IMG[p.img]||p.img||IMG.amber;
 const naira=n=>'₦'+n.toLocaleString('en-NG');
 const productUrl=p=>`product.html?id=${encodeURIComponent(p.id)}`;
 const CONTACT={email:'info@shopsapphirescents.com',instagram:'https://www.instagram.com/sapphirescents/',facebook:'https://www.facebook.com/walejana/'};
+
+/* Live catalogue: /api/catalog calls this with the products saved in the dashboard.
+   If it never runs (offline, database down), the built-in list above is used. */
+function SS_APPLY(rows){
+  if(!Array.isArray(rows)||!rows.length)return;
+  const kinds={perfume:'Perfume',refill:'Scent refill',diffuser:'Diffuser'};
+  const lists={perfume:PERFUMES,refill:REFILLS,diffuser:DIFFUSERS};
+  const fresh={perfume:[],refill:[],diffuser:[]};
+  rows.slice().sort((a,b)=>(a.sort||0)-(b.sort||0)||String(a.name).localeCompare(b.name)).forEach(r=>{
+    if(!fresh[r.type]||!r.id||!r.name)return;
+    const d=r.data&&typeof r.data==='object'?r.data:{};
+    const p={...d,id:r.id,type:r.type,name:r.name,price:+r.price||0,inStock:r.in_stock!==false,kind:kinds[r.type]};
+    p.notes=Array.isArray(p.notes)?p.notes:[];p.tags=Array.isArray(p.tags)?p.tags:[];
+    p.a=p.a||'#8a6a2a';p.story=p.story||'';
+    if(r.type==='perfume'){p.img=p.img||'amber';p.family=p.family||'';p.pair=p.pair||p.notes.slice(0,2).join(' & ')}
+    if(r.type==='refill'){p.family=p.family||(p.perfume?'Signature scent':'Single note');p.note=p.note||p.notes[0]||'Drop'}
+    if(r.type==='diffuser'){p.images=Array.isArray(p.images)&&p.images.length?p.images:[IMG.hero];p.short=p.short||p.name.replace(/ Diffuser$/,'');p.tagline=p.tagline||'';p.features=p.features||[];p.specs=p.specs||[];p.summary=p.summary||p.story}
+    fresh[r.type].push(p);
+  });
+  if(!fresh.perfume.length&&!fresh.refill.length&&!fresh.diffuser.length)return;
+  for(const t in lists){lists[t].length=0;lists[t].push(...fresh[t])}
+  ALL.length=0;ALL.push(...PERFUMES,...REFILLS,...DIFFUSERS);
+  for(const k in byId)delete byId[k];
+  ALL.forEach(p=>{byId[p.id]=p});
+  window.SS_LIVE=true;
+}

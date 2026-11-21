@@ -8,14 +8,15 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-let CAT = null;
-function catalog() {
-  if (CAT) return CAT;
+const { liveProducts } = require('./_db');
+// Prices always come from the server: the live dashboard list, else the built-in catalogue.
+async function catalog() {
   const src = fs.readFileSync(path.join(process.cwd(), 'assets/js/catalog.js'), 'utf8');
-  const ctx = {};
+  const ctx = { window: {} };
   vm.createContext(ctx);
-  vm.runInContext(src + ';this.__C={byId,naira};', ctx);
-  return (CAT = ctx.__C);
+  vm.runInContext(src + ';this.__C={byId,naira,SS_APPLY};', ctx);
+  try { const rows = await liveProducts(); if (rows && rows.length) ctx.__C.SS_APPLY(rows); } catch (e) { console.error('live catalogue', e.message); }
+  return ctx.__C;
 }
 
 const clean = (v, max = 500) => String(v == null ? '' : v).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '').trim().slice(0, max);
@@ -47,13 +48,13 @@ module.exports = async (req, res) => {
 
   try {
     if (b.type === 'order') {
-      const { byId, naira } = catalog();
+      const { byId, naira } = await catalog();
       const c = b.customer || {};
       const cu = { name: clean(c.name, 120), phone: clean(c.phone, 40), email: clean(c.email, 160), address: clean(c.address, 300), city: clean(c.city, 120), state: clean(c.state, 120), notes: clean(c.notes, 1500) };
       if (!cu.name || !cu.phone || !okEmail(cu.email) || !cu.address || !cu.city || !cu.state) return res.status(400).json({ ok: false, error: 'Missing details' });
       const items = (Array.isArray(b.items) ? b.items : []).slice(0, 50)
         .map(l => ({ p: byId[clean(l.id, 80)], qty: Math.max(1, Math.min(99, parseInt(l.qty, 10) || 1)), opt: clean(l.opt, 60) }))
-        .filter(l => l.p);
+        .filter(l => l.p && l.p.inStock !== false);
       if (!items.length) return res.status(400).json({ ok: false, error: 'Your bag is empty' });
       const total = items.reduce((s, l) => s + l.p.price * l.qty, 0);
       const ref = clean(b.ref, 20) || 'SS-' + Date.now().toString(36).toUpperCase().slice(-6);

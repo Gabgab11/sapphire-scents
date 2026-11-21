@@ -162,12 +162,13 @@
 </main>
 <footer id="site-footer"></footer>
 <script src="assets/js/catalog.js"></script>
+<script src="/api/catalog"></script>
 <script src="assets/js/site.js"></script>
 <script>
 /* ================= HERO: lights-on opening, a new scent on each visit ================= */
 (function(){
  const B=document.body,hdr=document.querySelector('header.site');
- const HERO=['asiko','sapphire-no-48','oud-magnifique','grandeur','chocolate','kadara','siren','lust','cherub','jagaban'].map(id=>({id,pair:byId[id].pair,eyebrow:byId[id].tags.includes('new')?'New release':byId[id].tags.includes('best')?'Best seller':byId[id].family}));
+ const HERO=['asiko','sapphire-no-48','oud-magnifique','grandeur','chocolate','kadara','siren','lust','cherub','jagaban'].filter(id=>byId[id]&&byId[id].type==='perfume').concat(PERFUMES.map(p=>p.id)).filter((id,i,a)=>a.indexOf(id)===i).slice(0,10).map(id=>({id,pair:byId[id].pair,eyebrow:byId[id].tags.includes('new')?'New release':byId[id].tags.includes('best')?'Best seller':byId[id].family}));
  let idx=Math.floor(Math.random()*HERO.length);
  try{const v=localStorage.getItem('ss_hero');if(v!==null&&!isNaN(+v))idx=(+v+1)%HERO.length}catch(e){}
  function apply(){
@@ -198,7 +199,7 @@
 })();
 /* ================= THE LINEUP: runway depth line driven by page scroll ================= */
 (function(){
- const IDS=['asiko','jagaban','oud-magnifique','grandeur'],LN=IDS.length,STEP=360,SHOW=3,RUN=SHOW-1; /* scroll walks through 3 scents: 01 to 03 */
+ const IDS=['asiko','jagaban','oud-magnifique','grandeur'].filter(id=>byId[id]&&byId[id].type==='perfume'),LN=IDS.length,STEP=360,SHOW=3,RUN=SHOW-1; /* scroll walks through 3 scents: 01 to 03 */
  const RAT={amber:341/750,jag:269/700};
  // depth stops from d = -1 (leaving past the rail) to d = 3 (arriving out of the haze); three bottles in view at rest
  const KX=[1.2,.70,.45,.27,.13],KF=[1.14,.89,.775,.70,.65],KH=[1.18,.80,.55,.40,.30],
@@ -206,12 +207,12 @@
  const sec=$('#lineup'),st=$('#luStage'),line=$('#luLine'),rail=$('#luRail'),ring=$('#luRing'),roll=$('#luRoll'),names=$('#luNames');
  const wrap=(x,n)=>((x%n)+n)%n,clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
  const people=IDS.map((id,i)=>{const p=byId[id];const e=document.createElement('div');e.className='lu-b '+p.img;e.dataset.i=i;
-  e.innerHTML=`<img src="${IMG[p.img]}" alt="${p.name}">`;line.append(e);return{e,r:RAT[p.img],f:'',o:''}});
+  e.innerHTML=`<img src="${imgOf(p)}" alt="${p.name}">`;line.append(e);return{e,r:RAT[p.img]||341/750,f:'',o:''}});
  const heart='<svg viewBox="0 0 24 24"><path d="M12 20S3.5 15 3.5 9A4.6 4.6 0 0 1 12 6.6 4.6 4.6 0 0 1 20.5 9C20.5 15 12 20 12 20Z"/></svg>';
  const cards=[];
  IDS.forEach((id,i)=>{const p=byId[id];
   const a=document.createElement('article');a.className='lu-card';
-  a.innerHTML=`<button class="lu-fav" aria-pressed="false" aria-label="Save ${p.name}">${heart}</button><span class="lu-shot"><img src="${IMG[p.img]}" alt="${p.name} bottle"></span><div class="lu-meta"><h3>${p.name}</h3><span>${naira(p.price)}</span><button class="lu-add" data-add="${p.id}" aria-label="Add ${p.name} to bag"></button></div>`;
+  a.innerHTML=`<button class="lu-fav" aria-pressed="false" aria-label="Save ${p.name}">${heart}</button><span class="lu-shot"><img src="${imgOf(p)}" alt="${p.name} bottle"></span><div class="lu-meta"><h3>${p.name}</h3><span>${naira(p.price)}</span><button class="lu-add" data-add="${p.id}" aria-label="Add ${p.name} to bag"></button></div>`;
   const b=document.createElement('article');b.className='lu-card alt';
   b.innerHTML=`<div class="lu-notes">${p.notes.slice(0,4).map(n=>`<div><i>${art(n)}</i>${n}</div>`).join('')}</div><div class="lu-meta"><h3>${p.name} notes</h3><span>${p.family}</span><a class="lu-add" href="${productUrl(p)}" aria-label="View ${p.name}"></a></div>`;
   rail.append(a,b);cards.push(a,b)});
@@ -279,10 +280,10 @@
 /* ticker */
 (function(){const w=['Asiko means time','Made in Nigeria since 2015','Kadara means destiny','Moroccan roses · Ethiopian frankincense','2,000+ distributors','Saki means royalty'];const s=w.map(x=>`<span>${x}</span><i>●</i>`).join('');$('#ticker').innerHTML=s+s})();
 /* best sellers */
-$('#bestGrid').innerHTML=['jagaban','sapphire-no-48','oud-magnifique','grandeur'].map(id=>perfumeCard(byId[id])).join('');
+$('#bestGrid').innerHTML=['jagaban','sapphire-no-48','oud-magnifique','grandeur'].filter(id=>byId[id]&&byId[id].type==='perfume').concat(PERFUMES.filter(p=>p.tags.includes('best')).map(p=>p.id)).filter((id,i,a)=>a.indexOf(id)===i).slice(0,4).map(id=>perfumeCard(byId[id])).join('');
 /* Asiko feature */
-(function(){const a=byId.asiko;
- $('#asikoFeature').innerHTML=`<div class="arrive-visual"><span class="tag-new">New release</span><img src="${IMG.amber}" alt="Asiko bottle"><span class="mono">Asiko</span></div>
+(function(){const a=byId.asiko;if(!a||a.type!=='perfume'){const s=$('#asikoFeature');if(s)s.closest('section').hidden=true;return}
+ $('#asikoFeature').innerHTML=`<div class="arrive-visual"><span class="tag-new">New release</span><img src="${imgOf(a)}" alt="Asiko bottle"><span class="mono">Asiko</span></div>
  <div><div class="eyebrow">New in the house</div><h3>Asiko</h3><div class="meta">${a.family} · Unisex</div>
  <p class="desc">${a.story}</p>
  <div class="pnotes">${a.notes.map(n=>`<div class="pnote"><span class="ico">${art(n)}</span>${n}</div>`).join('')}</div>

@@ -22,7 +22,10 @@
   ],
   "functions": {
     "api/send.js": {
-      "includeFiles": "assets/js/catalog.js"
+      "includeFiles": "{assets/js/catalog.js,assets/js/config.json}"
+    },
+    "api/catalog.js": {
+      "includeFiles": "assets/js/config.json"
     }
   }
 }

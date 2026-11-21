@@ -637,3 +637,7 @@ a.nchip:hover{border-color:var(--gold)}
 /* sending state for forms */
 .btn[aria-busy="true"]{opacity:.6;pointer-events:none}
 .sent-ok{border:1px solid var(--line);padding:18px 20px;margin-top:6px}
+
+/* sold out */
+.add.soldout{opacity:.55;cursor:default;pointer-events:none}
+.btn[disabled]{opacity:.5;cursor:not-allowed}

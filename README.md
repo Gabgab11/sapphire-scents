@@ -29,3 +29,18 @@ Set these in Vercel → Project → Settings → Environment Variables, then red
 - `MAIL_TO` – inbox for orders (defaults to info@shopsapphirescents.com)
 
 Until they are set, the site falls back to letting the customer email, copy or Instagram the order.
+
+## Dashboard (admin)
+`/admin` is the staff dashboard: products, prices, stock, photos, bulk CSV upload, history and team.
+Data lives in Supabase (project "Sapphire Scents"): `supabase/schema.sql` creates the tables, security rules and the
+`products` photo bucket; `supabase/seed.sql` loads the original 56 products. Set the project URL and publishable key in
+`assets/js/config.json`. Every page loads `/api/catalog`, which returns the live products; if it can't, the built-in list
+in `assets/js/catalog.js` is used.
+
+Adding staff: an owner adds the email on the dashboard's Team tab, then creates the login in Supabase
+(Authentication › Users › Add user, with "Auto confirm"). Turn off public sign-ups in Supabase Auth settings.
+
+## Hosting: Cloudflare Pages
+Connect this GitHub repo in Cloudflare Pages (no build command, output directory `/`). The server code is in `functions/`
+(`/api/catalog`, `/api/send`); `_headers` sets caching. Environment variables for order emails: `RESEND_API_KEY` (secret),
+`MAIL_FROM`, `MAIL_TO`. The `api/` folder and `vercel.json` are the old Vercel versions and can be deleted after the move.
