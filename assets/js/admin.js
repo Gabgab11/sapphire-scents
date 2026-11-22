@@ -592,7 +592,7 @@ async function lookView(){
   const v=$('#view'),owner=ME.role==='owner';
   v.innerHTML=`<div class="head"><div><h2>Site look</h2><p>Choose the shop’s colours. Preview first; the shop only changes when an owner presses Publish.</p></div></div><div id="lk"><div class="empty">Loading…</div></div>`;
   try{const r=await api('settings?key=eq.look&select=*');LOOK_ROW=r&&r[0]||{key:'look',value:{id:'midnight',prev:'midnight'}}}
-  catch(e){$('#lk').innerHTML=`<div class="empty">${esc(e.message)}</div>`;return}
+  catch(e){$('#lk').innerHTML=`<div class="empty">${/schema cache|does not exist|settings/i.test(e.message)?'Site look is almost ready. It switches on once its setting is added to the database.':esc(e.message)}</div>`;return}
   const val=LOOK_ROW.value||{},live=liveLook(val);LOOK_PICK=LOOK_PICK||live;
   const sch=val.schedule;
   $('#lk').innerHTML=`<div class="lookgrid">
