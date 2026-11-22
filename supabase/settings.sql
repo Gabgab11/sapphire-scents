@@ -25,7 +25,9 @@ grant insert, update on public.settings to authenticated;
 grant all on public.settings to service_role;
 
 drop policy if exists "read public settings" on public.settings;
-create policy "read public settings" on public.settings for select to anon, authenticated using (is_public or (select private.is_staff()));
+create policy "read public settings" on public.settings for select to anon using (is_public);
+drop policy if exists "staff read settings" on public.settings;
+create policy "staff read settings" on public.settings for select to authenticated using (is_public or (select private.is_staff()));
 drop policy if exists "owners add settings" on public.settings;
 create policy "owners add settings" on public.settings for insert to authenticated with check ((select private.is_owner()));
 drop policy if exists "owners change settings" on public.settings;
