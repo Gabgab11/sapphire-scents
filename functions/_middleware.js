@@ -55,6 +55,8 @@ export async function onRequest(context) {
   const url = new URL(request.url);
   const path = url.pathname;
 
+  // Google Search Console checks this exact address; Pages would otherwise redirect away from .html
+  if (path === '/google04b880f18e611c66.html' || path === '/google04b880f18e611c66') return new Response('google-site-verification: google04b880f18e611c66.html', { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
   if (HIDDEN.test(path)) return new Response('Not found', { status: 404, headers: { 'Content-Type': 'text/plain', 'X-Robots-Tag': 'noindex' } });
 
   if (path.startsWith('/api/')) {
