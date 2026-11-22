@@ -107,7 +107,7 @@ async function signOut(){try{if(S)await authCall('logout',null,'POST',S.access_t
 
 /* ---------------- shell ---------------- */
 function shell(){
-  const tabs=[['overview','Overview'],['orders','Orders'],['products','Products'],['bulk','Bulk upload'],['history','History'],['team','Team']];
+  const tabs=[['overview','Overview'],['orders','Orders'],['products','Products'],['bulk','Bulk upload'],['history','History'],['look','Site look'],['team','Team']];
   $('#app').innerHTML=`<header class="top"><div class="top-in">
     <a class="brand" href="index.html" target="_blank" rel="noopener"><img src="images/brand/wordmark.svg" alt="Sapphire Scents" style="height:26px;width:auto;vertical-align:middle"><small>Dashboard</small></a>
     <nav class="tabs" role="tablist" aria-label="Dashboard sections">${tabs.map(([k,l])=>`<button role="tab" data-tab="${k}" aria-selected="${VIEW===k}">${l}</button>`).join('')}</nav>
@@ -116,7 +116,7 @@ function shell(){
   <div class="dlg" id="dlg" hidden></div>`;
   $$('[data-tab]').forEach(b=>b.onclick=()=>{VIEW=b.dataset.tab;try{history.replaceState(null,'','#'+VIEW)}catch(e){}shell()});
   $('#out').onclick=signOut;
-  ({overview:overviewView,orders:ordersView,products:productsView,bulk:bulkView,history:historyView,team:teamView})[VIEW]();
+  ({overview:overviewView,orders:ordersView,products:productsView,bulk:bulkView,history:historyView,look:lookView,team:teamView})[VIEW]();
 }
 async function loadProducts(){PRODUCTS=await api('products?select=*&order=type.asc,sort.asc,name.asc')||[]}
 
@@ -575,6 +575,63 @@ function orderPanel(o){
     w.document.write(`<title>${esc(o.id)}</title><body style="font:14px/1.5 Arial,sans-serif;padding:24px;max-width:640px"><h2 style="margin:0">Sapphire Scents</h2><p>Order <b>${esc(o.id)}</b> · ${oDate(o).toLocaleDateString('en-GB')}</p><h3>Deliver to</h3><p><b>${esc(c.name||'')}</b><br>${esc(c.phone||'')}<br>${esc(oPlace(c))}</p><h3>Items</h3><ul>${(o.items||[]).map(i=>`<li>${esc(i.name)}${i.opt?' ('+esc(i.opt)+')':''} × ${+i.qty||1}</li>`).join('')}</ul>${c.notes?`<p>Note: ${esc(c.notes)}</p>`:''}<script>print()<\/script></body>`);w.document.close()};
 }
 
+/* ---------------- site look (themes) ---------------- */
+const LOOKS=[
+ {id:'midnight',name:'Midnight Amber',note:'Night blue with amber. The original look.',bg:'#070C29',acc:'#FF9E0D'},
+ {id:'ivory',name:'Ivory & Gold',note:'Light and bright, like a boutique counter.',bg:'#F6F1E8',acc:'#8C6420'},
+ {id:'noir',name:'Oud Noir',note:'Black and antique gold. Quiet and expensive.',bg:'#0D0B09',acc:'#C9A15B'},
+ {id:'royal',name:'Royal Sapphire',note:'Deep sapphire blue with gold.',bg:'#0B1D5C',acc:'#E0BE6E'},
+ {id:'rose',name:'Rose Oud',note:'Wine and soft rose. For Valentine’s and Mother’s Day.',bg:'#24101A',acc:'#E59AA6',season:true},
+ {id:'emerald',name:'Emerald Festive',note:'Deep green with gold. For Sallah and Christmas.',bg:'#0A2620',acc:'#E2B65A',season:true}
+];
+const lookName=id=>(LOOKS.find(l=>l.id===id)||LOOKS[0]).name;
+const lagosToday=()=>new Date(Date.now()+3600e3).toISOString().slice(0,10);
+function liveLook(v){const s=v&&v.schedule,t=lagosToday();if(s&&s.id&&s.from&&s.to&&t>=s.from&&t<=s.to)return s.id;return (v&&v.id)||'midnight'}
+let LOOK_ROW=null,LOOK_PICK=null,LOOK_PAGE='index.html',LOOK_DEV='desk';
+async function lookView(){
+  const v=$('#view'),owner=ME.role==='owner';
+  v.innerHTML=`<div class="head"><div><h2>Site look</h2><p>Choose the shop’s colours. Preview first; the shop only changes when an owner presses Publish.</p></div></div><div id="lk"><div class="empty">Loading…</div></div>`;
+  try{const r=await api('settings?key=eq.look&select=*');LOOK_ROW=r&&r[0]||{key:'look',value:{id:'midnight',prev:'midnight'}}}
+  catch(e){$('#lk').innerHTML=`<div class="empty">${esc(e.message)}</div>`;return}
+  const val=LOOK_ROW.value||{},live=liveLook(val);LOOK_PICK=LOOK_PICK||live;
+  const sch=val.schedule;
+  $('#lk').innerHTML=`<div class="lookgrid">
+   <section class="lookstage">
+    <div class="lookbar">
+     <div class="seg" role="group" aria-label="Page to preview">${[['index.html','Home'],['perfumes.html','Perfumes'],['product.html?id=jagaban','A product'],['checkout.html','Checkout']].map(([u,l])=>`<button class="chip" data-pg="${u}" aria-pressed="${LOOK_PAGE===u}">${l}</button>`).join('')}</div>
+     <div class="seg" role="group" aria-label="Screen size"><button class="chip" data-dev="desk" aria-pressed="${LOOK_DEV==='desk'}">Computer</button><button class="chip" data-dev="phone" aria-pressed="${LOOK_DEV==='phone'}">Phone</button></div>
+    </div>
+    <div class="lookframe ${LOOK_DEV}"><iframe id="lkf" title="Preview of the shop" loading="lazy"></iframe></div>
+    <p class="hint" id="lkmsg"></p>
+   </section>
+   <aside class="lookside">
+    <div class="looklist" role="radiogroup" aria-label="Looks">${LOOKS.map(l=>`<button class="lookopt" role="radio" data-look="${l.id}" aria-checked="${LOOK_PICK===l.id}"><span class="lsw" style="background:${l.bg};--a:${l.acc}"></span><span><b>${l.name}${live===l.id?' <em class="live">Live now</em>':''}${l.season?' <em>Seasonal</em>':''}</b><small>${l.note}</small></span></button>`).join('')}</div>
+    ${owner?`<div class="lookact"><button class="btn primary" id="lkpub">Publish this look</button><button class="btn" id="lkundo" ${val.prev&&val.prev!==val.id?'':'disabled'}>Undo to ${esc(lookName(val.prev||'midnight'))}</button></div>`:`<p class="note">Only owners can change the look. You can still preview.</p>`}
+    <fieldset class="lookfs"><legend>Seasonal look</legend>
+     <p class="hint">Switch to a look for a few days, then back on its own. Dates are Nigeria time.</p>
+     ${sch?`<p><b>${esc(lookName(sch.id))}</b> from ${esc(sch.from)} to ${esc(sch.to)}${live===sch.id?' · <span class="live">on now</span>':''}</p>`:''}
+     ${owner?`<div class="row2"><label class="f">Look<select class="sel" id="sclook">${LOOKS.map(l=>`<option value="${l.id}"${(sch?sch.id:'rose')===l.id?' selected':''}>${l.name}</option>`).join('')}</select></label><span></span>
+      <label class="f">From<input class="in" type="date" id="scfrom" value="${esc(sch?sch.from:'')}"></label><label class="f">To<input class="in" type="date" id="scto" value="${esc(sch?sch.to:'')}"></label></div>
+      <div class="lookact"><button class="btn small" id="scsave">Save dates</button>${sch?'<button class="btn small" id="scclear">Remove seasonal look</button>':''}</div>`:''}
+    </fieldset>
+    ${LOOK_ROW.updated_by?`<p class="hint">Last changed by ${esc(LOOK_ROW.updated_by)} · ${new Date(LOOK_ROW.updated_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</p>`:''}
+   </aside></div>`;
+  const frame=()=>{const sep=LOOK_PAGE.includes('?')?'&':'?';$('#lkf').src=`${LOOK_PAGE}${sep}look=${LOOK_PICK}`;
+    $('#lkmsg').textContent=LOOK_PICK===live?`This is the look the shop has now.`:`Previewing ${lookName(LOOK_PICK)}. The shop hasn’t changed.`};
+  frame();
+  $$('[data-pg]').forEach(b=>b.onclick=()=>{LOOK_PAGE=b.dataset.pg;$$('[data-pg]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));frame()});
+  $$('[data-dev]').forEach(b=>b.onclick=()=>{LOOK_DEV=b.dataset.dev;$$('[data-dev]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));$('.lookframe').className='lookframe '+LOOK_DEV});
+  $$('.lookopt').forEach(b=>b.onclick=()=>{LOOK_PICK=b.dataset.look;$$('.lookopt').forEach(x=>x.setAttribute('aria-checked',String(x===b)));frame()});
+  if(!owner)return;
+  const save=async(value,msg)=>{try{const r=await api('settings?on_conflict=key',{method:'POST',body:{key:'look',value},prefer:'resolution=merge-duplicates,return=representation'});LOOK_ROW=r&&r[0]||LOOK_ROW;toast(msg);lookView()}catch(e){toast(e.message,true)}};
+  $('#lkpub').onclick=()=>{if(LOOK_PICK===val.id)return toast('That look is already published');save({...val,id:LOOK_PICK,prev:val.id||'midnight'},`${lookName(LOOK_PICK)} is published. The shop changes within a minute.`)};
+  $('#lkundo').onclick=()=>{const back=val.prev||'midnight';LOOK_PICK=back;save({...val,id:back,prev:val.id},`Back to ${lookName(back)}. The shop changes within a minute.`)};
+  $('#scsave').onclick=()=>{const id=$('#sclook').value,from=$('#scfrom').value,to=$('#scto').value;
+    if(!from||!to)return toast('Pick both dates',true);if(to<from)return toast('The end date is before the start date',true);
+    save({...val,schedule:{id,from,to}},`${lookName(id)} is set for ${from} to ${to}.`)};
+  if($('#scclear'))$('#scclear').onclick=()=>{const {schedule,...rest}=val;save(rest,'Seasonal look removed')};
+}
+
 /* ---------------- team ---------------- */
 async function teamView(){
   const v=$('#view');const owner=ME.role==='owner';
@@ -617,7 +674,7 @@ async function start(){
     if(!me||!me.length){const e=email;await signOut();return loginView('in',`${e} isn’t on the Sapphire staff list yet. Ask an owner to add you.`)}
     ME=me[0];
     await loadProducts();
-    const want=location.hash.slice(1);if(['overview','orders','products','bulk','history','team'].includes(want))VIEW=want;
+    const want=location.hash.slice(1);if(['overview','orders','products','bulk','history','look','team'].includes(want))VIEW=want;
     shell();
   }catch(e){if(!S)return;$('#app').innerHTML=`<div class="boot">${esc(e.message)} <button class="btn small" onclick="location.reload()">Try again</button></div>`}
 }
