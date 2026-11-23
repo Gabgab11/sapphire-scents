@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500&display=swap">
 <link rel="preload" as="image" href="images/flower.webp" fetchpriority="high">
 <link rel="preload" as="image" href="images/hero-bottle.webp" fetchpriority="high">
-<link rel="stylesheet" href="assets/css/site.css?v=202611222030">
+<link rel="stylesheet" href="assets/css/site.css?v=202611240100">
 <script>document.documentElement.classList.add("js")</script>
 </head>
 <body class="has-hero">
@@ -30,6 +30,9 @@
  /* measure each drawn path so the draw-on effect works in every browser, including iPhone Safari */
  var drawn=el.querySelectorAll('.lg-ring,.lg-big,.lg-w');
  for(var i=0;i<drawn.length;i++){var p=drawn[i],L=1;try{L=Math.ceil(p.getTotalLength())+2}catch(e){}p.style.strokeDasharray=L;p.style.strokeDashoffset=L;p.style.setProperty('--len',L)}
+ /* the intro plays once per visit; coming back to the home page (Back button, logo, Home link) skips it */
+ var seen=false;try{seen=sessionStorage.getItem('ss_intro')==='1';sessionStorage.setItem('ss_intro','1')}catch(e){}
+ if(seen||window.self!==window.top){el.parentNode&&el.parentNode.removeChild(el);done();return}
  el.classList.add('lg-go');
  document.documentElement.style.overflow='hidden';
  var t=[],finished=false;
@@ -39,9 +42,6 @@
  t.push(setTimeout(finish,rm?2600:4700));
  document.getElementById('skipIntro').addEventListener('click',finish);
  el.addEventListener('click',finish);
- try{if(window.self!==window.top)finish()}catch(e){finish()} /* the dashboard's look preview skips the intro */
- /* when the browser restores the page from its back/forward cache, show the intro again */
- window.addEventListener('pageshow',function(e){if(e.persisted)location.reload()});
 })();
 </script>
 <header id="site-header" class="site"></header>
@@ -168,9 +168,9 @@
 
 </main>
 <footer id="site-footer"></footer>
-<script src="assets/js/catalog.js?v=202611222030"></script>
+<script src="assets/js/catalog.js?v=202611240100"></script>
 <script src="/api/catalog"></script>
-<script src="assets/js/site.js?v=202611222030"></script>
+<script src="assets/js/site.js?v=202611240100"></script>
 <script>
 /* ================= HERO: lights-on opening, a different diffuser on each visit ================= */
 (function(){

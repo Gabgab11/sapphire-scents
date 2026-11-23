@@ -12,7 +12,7 @@
 <meta property="og:image" content="/images/crown-jagaban.webp">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070C29'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='Georgia,serif' font-style='italic' font-size='36' fill='%23FF9E0D'%3ES%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500&display=swap">
-<link rel="stylesheet" href="assets/css/site.css?v=202611222030">
+<link rel="stylesheet" href="assets/css/site.css?v=202611240100">
 <script>document.documentElement.classList.add("js")</script>
 </head>
 <body>
@@ -22,9 +22,9 @@
 <section class="related"><div class="wrap"><h2 id="relTitle">You may also like</h2><div class="grid" id="relGrid"></div></div></section>
 </main>
 <footer id="site-footer"></footer>
-<script src="assets/js/catalog.js?v=202611222030"></script>
+<script src="assets/js/catalog.js?v=202611240100"></script>
 <script src="/api/catalog"></script>
-<script src="assets/js/site.js?v=202611222030"></script>
+<script src="assets/js/site.js?v=202611240100"></script>
 <script>
 
 const id=new URLSearchParams(location.search).get('id');const p=byId[id];
@@ -33,7 +33,7 @@ else{
  document.title=`${p.name} | Sapphire Scents`;
  const md=document.querySelector('meta[name=description]');md.content=(p.summary||p.story).slice(0,155);
  const sec={perfume:['perfumes.html','Perfumes'],refill:['refills.html','Scent refills'],diffuser:['diffusers.html','Diffusers']}[p.type];
- $('#pcrumbs').innerHTML=`<a href="index.html">Home</a><span>/</span><a href="${sec[0]}">${sec[1]}</a><span>/</span><span>${p.name}</span>`;
+ $('#pcrumbs').innerHTML=`<a class="pback" href="${sec[0]}" id="pback" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 12H5M11 6l-6 6 6 6"/></svg>Back</a><a href="index.html">Home</a><span>/</span><a href="${sec[0]}">${sec[1]}</a><span>/</span><span>${p.name}</span>`;
  let gal,info='';
  const soldOut=p.inStock===false;
  const stepper=`<div class="stepper"><button type="button" id="qm" aria-label="Decrease quantity">−</button><output id="qv">1</output><button type="button" id="qp" aria-label="Increase quantity">+</button></div>`;
@@ -78,6 +78,7 @@ else{
  $('#relGrid').innerHTML=rel.map(anyCard).join('');
 }
 
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#pback');if(!b)return;{let same=false;try{same=!!document.referrer&&new URL(document.referrer).origin===location.origin}catch(x){}if(same&&history.length>1){e.preventDefault();history.back()}}});
 </script>
 </body>
 </html>

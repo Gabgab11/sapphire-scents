@@ -725,3 +725,6 @@ body.lit-text .hprice{animation:rise 1s .38s both}
 :root[data-look="rose"] :is(.hbg,.front img){filter:hue-rotate(115deg) saturate(.85) brightness(.95)}
 :root[data-look="emerald"] :is(.hbg,.front img){filter:hue-rotate(-85deg) saturate(.75) brightness(.9)}
 :root[data-look="ivory"] :is(.hbg,.front img){filter:grayscale(1) invert(.94) sepia(.35) contrast(.8) brightness(1.04)}
+
+.crumbs .pback{display:inline-flex;align-items:center;gap:6px;margin-right:14px;padding:6px 12px 6px 8px;border:1px solid var(--line);border-radius:999px;color:var(--ink);text-decoration:none}
+.crumbs .pback:hover{border-color:var(--gold);color:var(--gold)}
