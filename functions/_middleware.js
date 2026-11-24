@@ -5,6 +5,7 @@
 const HIDDEN = /^\/(supabase|functions|api\/_|node_modules)(\/|$)|^\/(README|readme)(\.md)?$|^\/vercel\.json$|^\/package(-lock)?\.json$|^\/api\/[^/]+\.js$|^\/\.(?!well-known\/)|\.(sql|md|map|bak|env|log)$/i;
 
 import config from '../assets/js/config.json';
+import { products, productPage, listPage, ldTag, esc, SITE } from './_lib/seo.js';
 
 // The shop's look (theme) is picked by an owner in the dashboard and saved in the settings table.
 // It's stamped onto every page as <html data-look="…"> before the page reaches the browser,
@@ -50,6 +51,27 @@ async function tooMany(request, path) {
   return false;
 }
 
+async function seoFor(ctx, url) {
+  const p = url.pathname.replace(/\.html$/, '');
+  const pages = { '/perfumes': ['perfume', 'Perfumes', '#grid'], '/refills': ['refill', 'Scent refills', '#rgrid'], '/diffusers': ['diffuser', 'Diffusers', '#dgrid'] };
+  if (p === '/product') {
+    const id = url.searchParams.get('id') || '';
+    const rows = await products(ctx.env, ctx);
+    const row = rows.find(r => r.id === id);
+    if (!row) return rows.length ? { ld: [], robots: 'noindex' } : null;
+    const pg = productPage(row);
+    return { ...pg, target: '#pdp' };
+  }
+  if (pages[p]) {
+    const [type, name, target] = pages[p];
+    const rows = await products(ctx.env, ctx);
+    if (!rows.length) return null;
+    const lp = listPage(rows, type, p, name);
+    return { ld: [lp.ld], url: SITE + p, body: lp.body, target };
+  }
+  return null;
+}
+
 export async function onRequest(context) {
   const { request, next } = context;
   const url = new URL(request.url);
@@ -76,11 +98,32 @@ export async function onRequest(context) {
   try { look = await currentLook(context); } catch (e) {}
   const preview = url.searchParams.get('look'); // the dashboard's preview, for that one page only
   if (preview && LOOKS.includes(preview)) look = preview;
-  if (look === 'midnight') return res;
-  const out = new HTMLRewriter()
+
+  // Real text and structured data for search engines on product and category pages
+  const seo = await seoFor(context, url).catch(() => null);
+  // one clean address per page for search engines (no .html, no tracking bits)
+  const plain = path === '/' || seo ? null : SITE + path.replace(/\.html$/, '').replace(/\/index$/, '/');
+  if (look === 'midnight' && !seo && !plain) return res;
+  let rw = new HTMLRewriter();
+  if (plain && !/\/(search|checkout|admin)/.test(path)) rw = rw.on('head', { element(el) { el.append(`<link rel="canonical" href="${esc(plain)}">`, { html: true }); } });
+  if (look !== 'midnight') rw = rw
     .on('html', { element(el) { el.setAttribute('data-look', look); } })
-    .on('meta[name="theme-color"]', { element(el) { el.setAttribute('content', THEME_COLOR[look]); } })
-    .transform(res);
+    .on('meta[name="theme-color"]', { element(el) { el.setAttribute('content', THEME_COLOR[look]); } });
+  if (seo) {
+    if (seo.title) rw = rw.on('title', { element(el) { el.setInnerContent(seo.title); } })
+      .on('meta[property="og:title"]', { element(el) { el.setAttribute('content', seo.title); } });
+    if (seo.desc) rw = rw.on('meta[name="description"]', { element(el) { el.setAttribute('content', seo.desc); } })
+      .on('meta[property="og:description"]', { element(el) { el.setAttribute('content', seo.desc); } });
+    if (seo.image) rw = rw.on('meta[property="og:image"]', { element(el) { el.setAttribute('content', seo.image); } });
+    if (seo.robots) rw = rw.on('meta[name="robots"]', { element(el) { el.setAttribute('content', seo.robots); } });
+    rw = rw.on('head', { element(el) {
+      el.append(seo.ld.map(ldTag).join(''), { html: true });
+      if (seo.url) el.append(`<link rel="canonical" href="${esc(seo.url)}">`, { html: true });
+      if (seo.robots) el.append(`<meta name="robots" content="${seo.robots}">`, { html: true });
+    } });
+    if (seo.body && seo.target) rw = rw.on(seo.target, { element(el) { el.setInnerContent(seo.body, { html: true }); } });
+  }
+  const out = rw.transform(res);
   const h = new Headers(out.headers); h.set('Cache-Control', 'no-cache');
   return new Response(out.body, { status: out.status, statusText: out.statusText, headers: h });
 }

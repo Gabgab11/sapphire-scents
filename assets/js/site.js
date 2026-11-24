@@ -29,7 +29,7 @@ function renderChrome(){
       <div><a class="logo" href="index.html" aria-label="Sapphire Scents home"><img class="wm wm-foot" src="images/brand/${LIGHT_LOOK?"wordmark-dark":"wordmark"}.svg" alt="Sapphire Scents" width="442" height="80" loading="lazy"></a><p style="margin-top:16px;max-width:34ch">Affordable luxury perfumes for Africans all over the world. Made in Nigeria since 2015.</p>
         <div class="socials"><a href="${CONTACT.instagram}" target="_blank" rel="noopener">Instagram</a><a href="${CONTACT.facebook}" target="_blank" rel="noopener">Facebook</a></div></div>
       <div><h4>Shop</h4><ul><li><a href="perfumes.html">Perfumes</a></li><li><a href="perfumes.html?c=best">Best sellers</a></li><li><a href="diffusers.html">Diffusers</a></li><li><a href="refills.html">Scent refills</a></li></ul></div>
-      <div><h4>House</h4><ul><li><a href="about.html">Our story</a></li><li><a href="contact.html#distributors">Become a distributor</a></li><li><a href="contact.html">Contact</a></li></ul></div>
+      <div><h4>House</h4><ul><li><a href="about.html">Our story</a></li><li><a href="best-nigerian-perfume.html">Perfume guide</a></li><li><a href="contact.html#distributors">Become a distributor</a></li><li><a href="contact.html">Contact</a></li></ul></div>
       <div><h4>Get in touch</h4><ul><li><a href="mailto:${CONTACT.email}">${CONTACT.email}</a></li><li><a href="${CONTACT.instagram}" target="_blank" rel="noopener">@sapphirescents</a></li></ul></div>
     </div>
     <div class="foot-note"><span>© ${year} Sapphire Scents. All rights reserved.</span><span>Every bottle of Sapphire Scents is a journey in perfume history.</span></div>

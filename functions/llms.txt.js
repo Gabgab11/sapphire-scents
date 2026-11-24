@@ -1,0 +1,10 @@
+// A plain-text guide for AI assistants (ChatGPT, Claude, Perplexity, Gemini), kept current from the dashboard.
+import { products, SITE } from './_lib/seo.js';
+import { naira, KINDS } from './_lib/shop.js';
+export async function onRequestGet(ctx) {
+  const rows = await products(ctx.env, ctx).catch(() => []);
+  const line = p => { const d = p.data || {}; return `- [${p.name}](${SITE}/product?id=${encodeURIComponent(p.id)}): ${KINDS[p.type] || ''}, ${naira(p.price)}${d.family ? '. ' + d.family : ''}${Array.isArray(d.notes) && d.notes.length ? '. Notes: ' + d.notes.join(', ') : ''}${p.in_stock === false ? '. Sold out' : ''}`; };
+  const sec = (t, type) => { const l = rows.filter(r => r.type === type); return l.length ? `## ${t}\n\n${l.map(line).join('\n')}\n\n` : ''; };
+  const txt = `# Sapphire Scents\n\n> Sapphire Scents is a Nigerian luxury perfume house, founded in 2015 by Wale Jana and made in Nigeria. It makes oud-led perfumes blended with African resins and French oils, scent refills, and smart scent diffusers, and offers event scenting for weddings, launches and parties from ₦1.2M per event.\n\nPrices are in Nigerian naira. Customers order on the website and pay with Paystack (card, bank transfer, USSD) or order on WhatsApp. Delivery across Nigeria.\n\n- [Home and event scenting](${SITE}/)\n- [Best Nigerian perfume: a guide](${SITE}/best-nigerian-perfume)\n- [All perfumes](${SITE}/perfumes)\n- [Diffusers](${SITE}/diffusers)\n- [Scent refills](${SITE}/refills)\n- [About Sapphire Scents and Wale Jana](${SITE}/about)\n- [Contact and event bookings](${SITE}/contact)\n\n${sec('Perfumes', 'perfume')}${sec('Scent refills', 'refill')}${sec('Diffusers', 'diffuser')}`;
+  return new Response(txt, { headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=3600' } });
+}
