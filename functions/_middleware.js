@@ -51,6 +51,32 @@ async function tooMany(request, path) {
   return false;
 }
 
+// Old WordPress addresses that Google still has: send each one to the matching new page (301),
+// so the shop keeps its search ranking and nobody lands on a dead page.
+async function oldAddress(ctx, url) {
+  const p = url.pathname.toLowerCase().replace(/\/+$/, '');
+  const go = to => Response.redirect(SITE + to, 301);
+  const cat = p.match(/^\/product-category\/([^/]+)/);
+  if (cat) return go({ 'sapphire-perfume': '/perfumes', 'perfumes': '/perfumes', 'scent-refills': '/refills', 'diffusers': '/diffusers' }[cat[1]] || '/perfumes');
+  const prod = p.match(/^\/product\/([^/]+)$/);
+  if (prod) {
+    const slug = prod[1];
+    if (/^diffusers?$/.test(slug)) return go('/diffusers');
+    const rows = await products(ctx.env, ctx).catch(() => []);
+    const ids = new Set(rows.map(r => r.id));
+    const base = slug.replace(/-\d+$/, '').replace(/-(scent-)?(refill|oil|perfume|diffuser)$/, '');
+    const tries = [slug, slug.replace(/-\d+$/, '') + '-refill', base, base + '-refill', base.replace(/^the-/, '')];
+    if (/-\d+$/.test(slug)) tries.splice(1, 0, base + '-refill');
+    const hit = tries.find(t => ids.has(t)) || (rows.find(r => r.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') === base) || {}).id;
+    return go(hit ? `/product?id=${encodeURIComponent(hit)}` : `/search?q=${encodeURIComponent(base.replace(/-/g, ' '))}`);
+  }
+  const fixed = { '/about-us': '/about', '/shop': '/perfumes', '/cart': '/checkout', '/my-account': '/', '/news': '/about', '/blog': '/about' }[p];
+  if (fixed) return go(fixed);
+  if (/^\/(category|tag|author|feed|\d{4})(\/|$)/.test(p)) return go('/about');
+  if (/sitemap.*\.xml$/.test(p) && p !== '/sitemap.xml') return go('/sitemap.xml');
+  return null;
+}
+
 async function seoFor(ctx, url) {
   const p = url.pathname.replace(/\.html$/, '');
   const pages = { '/perfumes': ['perfume', 'Perfumes', '#grid'], '/refills': ['refill', 'Scent refills', '#rgrid'], '/diffusers': ['diffuser', 'Diffusers', '#dgrid'] };
@@ -79,6 +105,8 @@ export async function onRequest(context) {
 
   // Google Search Console checks this exact address; Pages would otherwise redirect away from .html
   if (path === '/google04b880f18e611c66.html' || path === '/google04b880f18e611c66') return new Response('google-site-verification: google04b880f18e611c66.html', { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+  const moved = await oldAddress(context, url).catch(() => null);
+  if (moved) return moved;
   if (HIDDEN.test(path)) return new Response('Not found', { status: 404, headers: { 'Content-Type': 'text/plain', 'X-Robots-Tag': 'noindex' } });
 
   if (path.startsWith('/api/')) {
@@ -92,6 +120,7 @@ export async function onRequest(context) {
     }
   }
   const res = await next();
+  if (res.status === 404 && request.method === 'GET' && /^\/[a-z0-9-]+\/?$/i.test(path) && path.length > 12) return Response.redirect(SITE + '/about', 301);
   const type = res.headers.get('content-type') || '';
   if (!type.includes('text/html') || path.startsWith('/admin')) return res;
   let look = 'midnight';
